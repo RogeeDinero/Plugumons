@@ -139,7 +139,6 @@
       }
     }
 
-    /* Reward Popup */
     .reward-popup {
       display: none;
       position: fixed;
@@ -171,13 +170,13 @@
 </head>
 <body>
   <div class="container">
-    <a href="https://plugumons.com" class="back-btn">⬅ Back</a>
+    <a href="index.html" class="back-btn">⬅ Back</a>
     <h1>🎁 Mystery Box</h1>
     <p>Every Plugumon hides a spark of the unknown... Open a box and see what energy you uncover! ⚡</p>
-    
+
     <button id="connectWalletBtn" class="wallet-btn">Connect Wallet</button>
     <p id="walletAddress"></p>
-    
+
     <div class="mystery-box" onclick="revealReward()">
       <div class="mystery-icon">❓</div>
       <p>Tap to Open</p>
@@ -190,7 +189,6 @@
   <div class="lightning" style="left:80%; animation-delay: 1s;">⚡</div>
   <div class="lightning" style="left:50%; animation-delay: 3s;">⚡</div>
 
-  <!-- Reward Popup -->
   <div id="rewardPopup" class="reward-popup">
     <div id="rewardMessage"></div>
     <button onclick="closePopup()">Close</button>
@@ -203,27 +201,25 @@
     const rewardPopup = document.getElementById('rewardPopup');
     const rewardMessage = document.getElementById('rewardMessage');
 
-    // Connect wallet (Phantom, Solflare, Backpack)
     walletBtn.addEventListener('click', async () => {
-        try {
-            if (window.solana?.isPhantom) connectedWallet = window.solana;
-            else if (window.solflare?.isSolflare) connectedWallet = window.solflare;
-            else if (window.backpack?.solana) connectedWallet = window.backpack.solana;
-            else {
-                alert("No compatible Solana wallet found. Please install Phantom, Solflare, or Backpack.");
-                return;
-            }
-
-            const resp = await connectedWallet.connect();
-            walletAddressText.textContent = "Connected: " + resp.publicKey.toString();
-            walletBtn.textContent = "Wallet Connected ✅";
-        } catch (err) {
-            console.error(err);
-            alert("Failed to connect wallet.");
+      try {
+        if (window.solana?.isPhantom) connectedWallet = window.solana;
+        else if (window.solflare?.isSolflare) connectedWallet = window.solflare;
+        else if (window.backpack?.solana) connectedWallet = window.backpack.solana;
+        else {
+          alert("No compatible Solana wallet found. Please install Phantom, Solflare, or Backpack.");
+          return;
         }
+
+        const resp = await connectedWallet.connect();
+        walletAddressText.textContent = "Connected: " + resp.publicKey.toString();
+        walletBtn.textContent = "Wallet Connected ✅";
+      } catch (err) {
+        console.error(err);
+        alert("Failed to connect wallet.");
+      }
     });
 
-    // Reveal reward
     async function revealReward() {
       if (!connectedWallet) {
         alert("You must connect your wallet first!");
@@ -231,13 +227,18 @@
       }
 
       const userPublicKey = connectedWallet.publicKey.toString();
+      const backendUrl = window.location.hostname === "localhost"
+        ? "http://localhost:3000"
+        : "https://plugumons-backend.onrender.com";
 
       try {
-        const res = await fetch('http://localhost:3000/api/open-box', {
+        const res = await fetch(`${backendUrl}/api/open-box`, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ userPublicKey })
         });
+
+        if (!res.ok) throw new Error(`HTTP error! status: ${res.status}`);
         const data = await res.json();
         rewardMessage.textContent = data.message;
         rewardPopup.style.display = 'block';
@@ -253,3 +254,4 @@
   </script>
 </body>
 </html>
+
