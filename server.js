@@ -1,25 +1,26 @@
 const express = require("express");
 const path = require("path");
-require("dotenv").config();
+const cors = require("cors");
 
 const app = express();
-
-// Middleware
+app.use(cors());
 app.use(express.json());
 
-// Serve static files from the "public" folder
-app.use(express.static(path.join(__dirname, "public")));
+// ✅ Serve static frontend files
+app.use(express.static(path.join(__dirname)));
 
-// Example API route (for your DApp logic)
-app.get("/api/rewards", (req, res) => {
-  res.json({ message: "Backend API is live!" });
+// Routes
+app.get("/", (req, res) => {
+  res.sendFile(path.join(__dirname, "index.html"));
 });
 
-// Optional: Catch-all route for safety
-app.get("*", (req, res) => {
-  res.sendFile(path.join(__dirname, "public", "index.html"));
+app.get("/mystery-box", (req, res) => {
+  res.sendFile(path.join(__dirname, "mystery-box.html"));
 });
 
-// Start server
+app.get("/energy-grid", (req, res) => {
+  res.sendFile(path.join(__dirname, "energy-grid.html"));
+});
+
 const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => console.log(`Server running on port ${PORT}`));
