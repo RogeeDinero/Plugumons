@@ -3,7 +3,11 @@ const path = require("path");
 const cors = require("cors");
 
 const app = express();
+
+// Enable CORS
 app.use(cors());
+
+// Parse JSON requests
 app.use(express.json());
 
 // ✅ Serve static frontend files from /public
@@ -22,5 +26,9 @@ app.get("/energy-grid", (req, res) => {
   res.sendFile(path.join(__dirname, "public", "energy-grid.html"));
 });
 
+// Backend API files like rewards.js or server logic stay in root or another folder
+
 const PORT = process.env.PORT || 3000;
-app.listen(PORT, () => console.log(`Server running on port ${PORT}`));
+app.listen(PORT, () => {
+  console.log(`Server running on port ${PORT}`);
+});
