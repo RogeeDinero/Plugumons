@@ -1261,6 +1261,8 @@
 
                 const publicKey = resp.publicKey.toString();
                 const shortAddress = publicKey.slice(0, 4) + '...' + publicKey.slice(-4);
+                
+                connectedWalletAddress = publicKey;
 
                 document.getElementById('connectedWalletName').textContent = walletName;
                 document.getElementById('walletAddress').textContent = shortAddress;
@@ -1271,12 +1273,17 @@
                 closeWalletModal();
 
                 console.log('Connected to', walletName, ':', publicKey);
+                
+                // Load user data
+                await loadUserData();
 
                 // Listen for account changes
                 provider.on('accountChanged', (publicKey) => {
                     if (publicKey) {
+                        connectedWalletAddress = publicKey.toString();
                         const newShortAddress = publicKey.toString().slice(0, 4) + '...' + publicKey.toString().slice(-4);
                         document.getElementById('walletAddress').textContent = newShortAddress;
+                        loadUserData();
                     } else {
                         disconnectWallet();
                     }
