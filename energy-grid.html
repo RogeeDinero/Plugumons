@@ -1615,10 +1615,14 @@
         // Calculator
         function calculate() {
             const amount = parseFloat(document.getElementById('amount').value) || 0;
-            const duration = parseFloat(document.getElementById('duration').value) || 0;
-            const apy = 125;
-            const dailyRate = apy / 100 / 365;
-            const rewards = amount * dailyRate * duration;
+            const duration = parseInt(document.getElementById('duration').value) || 30;
+            
+            // Get APR based on duration
+            const aprRates = { 30: 5, 90: 10, 365: 20 };
+            const apr = aprRates[duration];
+            
+            // Calculate rewards: (amount × APR × days) / 365
+            const rewards = (amount * (apr / 100) * duration) / 365;
             const total = amount + rewards;
 
             document.getElementById('rewards').textContent = '+' + formatNumber(rewards) + ' $PLUGU';
@@ -1630,24 +1634,6 @@
                 minimumFractionDigits: 0,
                 maximumFractionDigits: 0
             }).format(num);
-        }
-
-        function claimRewards(stationId) {
-            if (!connectedWalletProvider) {
-                alert('Please connect your wallet first!');
-                openWalletModal();
-                return;
-            }
-            alert('Claiming rewards from Power Station #' + stationId + '...\n(Feature coming soon!)');
-        }
-
-        function unstake(stationId) {
-            if (!connectedWalletProvider) {
-                alert('Please connect your wallet first!');
-                openWalletModal();
-                return;
-            }
-            alert('Unstaking from Power Station #' + stationId + '...\n(Feature coming soon!)');
         }
 
         // Close modal when clicking outside
