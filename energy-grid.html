@@ -1314,6 +1314,302 @@
             document.getElementById('disconnectBtn').classList.add('hidden');
             connectedWalletProvider = null;
             connectedWalletType = null;
+            connectedWalletAddress = null;
+            
+            // Clear user-specific data
+            clearUserData();
+        }
+
+        // ============ API Integration Functions ============
+
+        async function loadGridStats() {
+            try {
+                const response = await fetch(`${API_BASE_URL}/api/grid/stats`);
+                const result = await response.json();
+                
+                if (result.success) {
+                    const { totalStaked, activeStakers, chargePercentage, isBoostActive } = result.data;
+                    
+                    // Update stats cards
+                    document.querySelector('.stats-grid .stat-card:nth-child(1) .stat-value').textContent = 
+                        formatNumber(totalStaked);
+                    document.querySelector('.stats-grid .stat-card:nth-child(3) .stat-value').textContent = 
+                        formatNumber(activeStakers);
+                    
+                    // Update grid charge meter
+                    document.querySelector('.meter-percentage').textContent = chargePercentage.toFixed(0) + '%';
+                    document.querySelector('.meter-value').innerHTML = 
+                        `${formatNumber(totalStaked)} $PLUGU<br>Currently Locked`;
+                    
+                    // Update progress circle
+                    const circle = document.querySelector('.meter-progress');
+                    const circumference = 440; // 2 * π * 70
+                    const offset = circumference - (chargePercentage / 100) * circumference;
+                    circle.style.strokeDashoffset = offset;
+                    
+                    // Show boost status
+                    if (isBoostActive) {
+                        document.querySelector('.meter-title').innerHTML = 
+                            '⚡ Total Grid Power - <span style="color: #00ff99;">BOOST ACTIVE!</span>';
+                    }
+                }
+            } catch (error) {
+                console.error('Error loading grid stats:', error);
+            }
+        }
+
+        async function loadLeaderboard() {
+            try {
+                const response = await fetch(`${API_BASE_URL}/api/leaderboard?limit=5`);
+                const result = await response.json();
+                
+                if (result.success && result.data.length > 0) {
+                    const tbody = document.querySelector('table tbody');
+                    tbody.innerHTML = result.data.map((entry, index) => {
+                        const rankIcons = ['⚡⚡⚡', '⚡⚡', '⚡', '#4', '#5'];
+                        const rankDisplay = index < 3 ? 
+                            `<span class="rank-icon">${rankIcons[index]}</span>` :
+                            `<span style="color: rgba(255,255,255,0.6); font-weight: 700;">${rankIcons[index]}</span>`;
+                        
+                        const shortAddress = entry.wallet_address.slice(0, 6) + '...' + entry.wallet_address.slice(-4);
+                        
+                        return `
+                            <tr>
+                                <td>${rankDisplay}</td>
+                                <td class="address">${shortAddress}</td>
+                                <td class="staked-amount">${formatNumber(entry.total_staked)} $PLUGU</td>
+                                <td class="rewards-amount">${formatNumber(entry.total_rewards)} $PLUGU</td>
+                            </tr>
+                        `;
+                    }).join('');
+                }
+            } catch (error) {
+                console.error('Error loading leaderboard:', error);
+            }
+        }
+
+        async function loadUserData() {
+            if (!connectedWalletAddress) return;
+            
+            try {
+                // Load user stats
+                const statsResponse = await fetch(`${API_BASE_URL}/api/user/stats/${connectedWalletAddress}`);
+                const statsResult = await statsResponse.json();
+                
+                if (statsResult.success) {
+                    const { total_staked, active_stakes, totalPendingRewards } = statsResult.data;
+                    
+                    // Update user stats cards
+                    document.querySelector('.stats-grid .stat-card:nth-child(2) .stat-value').textContent = 
+                        formatNumber(total_staked);
+                    document.querySelector('.stats-grid .stat-card:nth-child(2) .stat-subtitle').textContent = 
+                        `Across ${active_stakes} power station${active_stakes !== 1 ? 's' : ''}`;
+                }
+                
+                // Load user stakes
+                const stakesResponse = await fetch(`${API_BASE_URL}/api/stakes/${connectedWalletAddress}`);
+                const stakesResult = await stakesResponse.json();
+                
+                if (stakesResult.success) {
+                    displayUserStakes(stakesResult.data);
+                }
+            } catch (error) {
+                console.error('Error loading user data:', error);
+            }
+        }
+
+        function displayUserStakes(stakes) {
+            const container = document.querySelector('.power-stations');
+            
+            if (stakes.length === 0) {
+                container.innerHTML = `
+                    <div style="grid-column: 1 / -1; text-align: center; padding: 40px;">
+                        <p style="font-size: 1.2rem; color: rgba(255,255,255,0.6);">
+                            You don't have any active stakes yet.<br>
+                            Use the calculator below to start staking!
+                        </p>
+                    </div>
+                `;
+                return;
+            }
+            
+            container.innerHTML = stakes.map((stake, index) => {
+                const stationNumber = String(stake.id).padStart(3, '0');
+                const nftBadge = stake.is_nft_holder ? ' 🎁 NFT Holder' : '';
+                const boostBadge = stake.hasHalfwayBonus ? ' ⚡ 2x BOOST' : '';
+                
+                return `
+                    <div class="power-card active">
+                        <div class="power-header">
+                            <div class="power-icon active">⚡</div>
+                            <div>
+                                <div class="power-title">Power Station #${stationNumber}${nftBadge}${boostBadge}</div>
+                                <div class="power-status">⚡ Charging</div>
+                            </div>
+                        </div>
+                        <div class="power-stats">
+                            <div>
+                                <div class="power-stat-label">Staked Amount</div>
+                                <div class="power-stat-value" style="color: #00ff99;">${formatNumber(stake.amount)} $PLUGU</div>
+                            </div>
+                            <div>
+                                <div class="power-stat-label">Current APR</div>
+                                <div class="power-stat-value" style="color: #ffeb3b;">${(stake.currentAPR * 100).toFixed(0)}%</div>
+                            </div>
+                        </div>
+                        <div class="progress-section">
+                            <div class="progress-header">
+                                <span style="color: rgba(255,255,255,0.6);">⏱ Duration Progress</span>
+                                <span style="font-weight: 700;">${stake.daysStaked} / ${stake.lock_period} days</span>
+                            </div>
+                            <div class="progress-bar">
+                                <div class="progress-fill" style="width: ${stake.progress}%;"></div>
+                            </div>
+                        </div>
+                        <div class="rewards-box">
+                            <div class="rewards-label">📈 Rewards Earned</div>
+                            <div class="rewards-value">${formatNumber(stake.unclaimedRewards)} $PLUGU</div>
+                        </div>
+                        <div class="button-group">
+                            <button class="btn btn-primary" onclick="claimRewards(${stake.id})" ${stake.unclaimedRewards <= 0 ? 'disabled' : ''}>
+                                Claim Rewards
+                            </button>
+                            <button class="btn btn-outline" onclick="unstakeTokens(${stake.id})" ${!stake.canUnstake ? 'disabled' : ''}>
+                                ${stake.canUnstake ? 'Unstake' : `Locked (${stake.daysRemaining} days)`}
+                            </button>
+                        </div>
+                    </div>
+                `;
+            }).join('');
+        }
+
+        function clearUserData() {
+            document.querySelector('.stats-grid .stat-card:nth-child(2) .stat-value').textContent = '0';
+            document.querySelector('.stats-grid .stat-card:nth-child(2) .stat-subtitle').textContent = 'Connect wallet';
+            
+            const container = document.querySelector('.power-stations');
+            container.innerHTML = `
+                <div style="grid-column: 1 / -1; text-align: center; padding: 40px;">
+                    <p style="font-size: 1.2rem; color: rgba(255,255,255,0.6);">
+                        Connect your wallet to view your power stations
+                    </p>
+                </div>
+            `;
+        }
+
+        async function claimRewards(stakeId) {
+            if (!connectedWalletAddress) {
+                alert('Please connect your wallet first!');
+                openWalletModal();
+                return;
+            }
+
+            try {
+                const response = await fetch(`${API_BASE_URL}/api/claim`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        stakeId,
+                        walletAddress: connectedWalletAddress
+                    })
+                });
+
+                const result = await response.json();
+
+                if (result.success) {
+                    alert(`✅ ${result.message}\n\nRewards will be sent to your wallet shortly.`);
+                    await loadUserData();
+                    await loadGridStats();
+                } else {
+                    alert(`❌ ${result.error}`);
+                }
+            } catch (error) {
+                console.error('Error claiming rewards:', error);
+                alert('Failed to claim rewards. Please try again.');
+            }
+        }
+
+        async function unstakeTokens(stakeId) {
+            if (!connectedWalletAddress) {
+                alert('Please connect your wallet first!');
+                openWalletModal();
+                return;
+            }
+
+            if (!confirm('Are you sure you want to unstake? This will also claim any unclaimed rewards.')) {
+                return;
+            }
+
+            try {
+                const response = await fetch(`${API_BASE_URL}/api/unstake`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        stakeId,
+                        walletAddress: connectedWalletAddress
+                    })
+                });
+
+                const result = await response.json();
+
+                if (result.success) {
+                    alert(`✅ ${result.message}\n\nAmount: ${formatNumber(result.amount)} $PLUGU\nUnclaimed Rewards: ${formatNumber(result.unclaimedRewards)} $PLUGU`);
+                    await loadUserData();
+                    await loadGridStats();
+                    await loadLeaderboard();
+                } else {
+                    alert(`❌ ${result.error}`);
+                }
+            } catch (error) {
+                console.error('Error unstaking:', error);
+                alert('Failed to unstake. Please try again.');
+            }
+        }
+
+        async function startStaking() {
+            if (!connectedWalletAddress) {
+                alert('Please connect your wallet first!');
+                openWalletModal();
+                return;
+            }
+
+            const amount = parseFloat(document.getElementById('amount').value);
+            const lockPeriod = parseInt(document.getElementById('duration').value);
+
+            if (!amount || amount <= 0) {
+                alert('Please enter a valid stake amount');
+                return;
+            }
+
+            if (!confirm(`Stake ${formatNumber(amount)} $PLUGU for ${lockPeriod} days?\n\nNote: This is a demo. In production, you would need to transfer tokens first.`)) {
+                return;
+            }
+
+            try {
+                const response = await fetch(`${API_BASE_URL}/api/stake`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        walletAddress: connectedWalletAddress,
+                        amount,
+                        lockPeriod
+                    })
+                });
+
+                const result = await response.json();
+
+                if (result.success) {
+                    alert(`✅ ${result.message}\n\n${result.hasNFT ? '🎁 NFT Holder Benefits Active!' : ''}`);
+                    await loadUserData();
+                    await loadGridStats();
+                    await loadLeaderboard();
+                } else {
+                    alert(`❌ ${result.error}`);
+                }
+            } catch (error) {
+                console.error('Error staking:', error);
+                alert('Failed to create stake. Please try again.');
+            }
         }
 
         // Calculator
