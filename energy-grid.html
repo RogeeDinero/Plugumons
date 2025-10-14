@@ -1159,13 +1159,28 @@
     </footer>
 
     <script>
+        // Configuration
+        const API_BASE_URL = window.location.origin;
+        
         // Solana Wallet Integration
         let connectedWalletProvider = null;
         let connectedWalletType = null;
+        let connectedWalletAddress = null;
+        let refreshInterval = null;
 
-        // Check wallet availability on load
+        // Check wallet availability and load data on page load
         window.addEventListener('load', () => {
             setTimeout(checkWalletAvailability, 500);
+            loadGridStats();
+            loadLeaderboard();
+            // Refresh data every 10 seconds
+            setInterval(() => {
+                loadGridStats();
+                loadLeaderboard();
+                if (connectedWalletAddress) {
+                    loadUserData();
+                }
+            }, 10000);
         });
 
         function checkWalletAvailability() {
