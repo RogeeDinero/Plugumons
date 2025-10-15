@@ -1788,9 +1788,8 @@
                     signature = await connection.sendRawTransaction(signed.serialize());
                 }
                 
-                alert(`✅ Transaction sent!\n\nSignature: ${signature}\n\n⏳ Confirming on blockchain...`);
-                
-                // Wait for confirmation
+                // Wait for confirmation (no alert, let wallet handle UI)
+                console.log('Transaction sent:', signature);
                 await connection.confirmTransaction(signature, 'confirmed');
                 
                 // Now create the stake in backend
