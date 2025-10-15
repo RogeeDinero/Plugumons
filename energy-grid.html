@@ -1108,7 +1108,7 @@
             }
 
             // Check Solflare
-            if (!window.solflare) {
+            if (!window.solflare?.isSolflare && !window.solflare) {
                 solflareOption.classList.add('disabled');
                 solflareStatus.textContent = 'Not Installed';
                 solflareStatus.classList.remove('detected');
