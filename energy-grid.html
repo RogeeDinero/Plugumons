@@ -1681,6 +1681,11 @@
                 return;
             }
 
+            if (!connectedWalletProvider) {
+                alert('Wallet provider not available. Please reconnect your wallet.');
+                return;
+            }
+
             const amount = parseFloat(document.getElementById('amount').value);
             const lockPeriod = parseInt(document.getElementById('duration').value);
 
@@ -1689,34 +1694,138 @@
                 return;
             }
 
-            if (!confirm(`Stake ${formatNumber(amount)} $PLUGU for ${lockPeriod} days?\n\nNote: This is a demo. In production, you would need to transfer tokens first.`)) {
+            // Confirmation with actual transfer details
+            if (!confirm(`🔒 Stake ${formatNumber(amount)} $PLUGU for ${lockPeriod} days?\n\n✅ This will transfer ${formatNumber(amount)} PLUGU tokens from your wallet to the staking contract.\n\n⚠️ Make sure you have enough SOL for transaction fees (~0.000005 SOL)\n\nContinue?`)) {
                 return;
             }
 
+            // Show processing message
+            const processingMsg = `⏳ Processing your stake...\n\n1. Preparing transaction\n2. Waiting for wallet approval\n3. Confirming on blockchain\n\nPlease approve the transaction in your wallet!`;
+            alert(processingMsg);
+
             try {
+                // Import Solana web3 from CDN if not already loaded
+                if (typeof window.solanaWeb3 === 'undefined') {
+                    // Load Solana Web3.js from CDN
+                    const script = document.createElement('script');
+                    script.src = 'https://unpkg.com/@solana/web3.js@latest/lib/index.iife.min.js';
+                    document.head.appendChild(script);
+                    await new Promise(resolve => script.onload = resolve);
+                }
+
+                const { Connection, PublicKey, Transaction, SystemProgram, LAMPORTS_PER_SOL } = window.solanaWeb3;
+                
+                // Connect to Solana
+                const connection = new Connection('https://api.mainnet-beta.solana.com', 'confirmed');
+                
+                // Staking wallet address (from backend)
+                const STAKING_WALLET = 'HaLue8w9EcBS4j3vTzHoyBcTvZCV6dWPd9YQce7S2QZZ';
+                const PLUGU_TOKEN_MINT = '12EU3xpACKJEZoSZgQUGnv1NgFucRNDdJaPgwuicpump';
+                
+                // Get token program
+                const TOKEN_PROGRAM_ID = new PublicKey('TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA');
+                
+                // User's wallet public key
+                const fromPubkey = new PublicKey(connectedWalletAddress);
+                const toPubkey = new PublicKey(STAKING_WALLET);
+                const mintPubkey = new PublicKey(PLUGU_TOKEN_MINT);
+                
+                // Get associated token accounts
+                const fromTokenAccount = await connection.getParsedTokenAccountsByOwner(fromPubkey, { mint: mintPubkey });
+                
+                if (fromTokenAccount.value.length === 0) {
+                    alert('❌ Error: No PLUGU tokens found in your wallet!\n\nPlease make sure you have PLUGU tokens to stake.');
+                    return;
+                }
+                
+                const userTokenAccount = fromTokenAccount.value[0].pubkey;
+                
+                // Get recipient token account
+                const toTokenAccount = await connection.getParsedTokenAccountsByOwner(toPubkey, { mint: mintPubkey });
+                
+                if (toTokenAccount.value.length === 0) {
+                    alert('❌ Error: Staking wallet not configured properly.\n\nPlease contact support.');
+                    return;
+                }
+                
+                const stakingTokenAccount = toTokenAccount.value[0].pubkey;
+                
+                // Create transfer instruction
+                const tokenAmount = amount * 1_000_000_000; // Convert to smallest unit (9 decimals)
+                
+                // Create transaction
+                const transaction = new Transaction();
+                
+                // Add transfer instruction using System Program for SPL tokens
+                const transferIx = {
+                    keys: [
+                        { pubkey: userTokenAccount, isSigner: false, isWritable: true },
+                        { pubkey: stakingTokenAccount, isSigner: false, isWritable: true },
+                        { pubkey: fromPubkey, isSigner: true, isWritable: false }
+                    ],
+                    programId: TOKEN_PROGRAM_ID,
+                    data: Buffer.from([
+                        3, // Transfer instruction
+                        ...new Uint8Array(new BigUint64Array([BigInt(tokenAmount)]).buffer)
+                    ])
+                };
+                
+                transaction.add(transferIx);
+                transaction.feePayer = fromPubkey;
+                
+                // Get recent blockhash
+                const { blockhash } = await connection.getLatestBlockhash();
+                transaction.recentBlockhash = blockhash;
+                
+                // Sign and send transaction using wallet
+                let signature;
+                
+                if (connectedWalletType === 'solflare') {
+                    const signed = await connectedWalletProvider.signTransaction(transaction);
+                    signature = await connection.sendRawTransaction(signed.serialize());
+                } else {
+                    const { signature: sig } = await connectedWalletProvider.signAndSendTransaction(transaction);
+                    signature = sig;
+                }
+                
+                alert(`✅ Transaction sent!\n\nSignature: ${signature}\n\n⏳ Waiting for confirmation...`);
+                
+                // Wait for confirmation
+                await connection.confirmTransaction(signature, 'confirmed');
+                
+                // Now create the stake in backend
                 const response = await fetch(`${API_BASE_URL}/api/stake`, {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({
                         walletAddress: connectedWalletAddress,
                         amount,
-                        lockPeriod
+                        lockPeriod,
+                        signature: signature
                     })
                 });
 
                 const result = await response.json();
 
                 if (result.success) {
-                    alert(`✅ ${result.message}\n\n${result.hasNFT ? '🎁 NFT Holder Benefits Active!' : ''}`);
+                    alert(`🎉 STAKE SUCCESSFUL!\n\n✅ ${formatNumber(amount)} PLUGU staked for ${lockPeriod} days!\n\n${result.hasNFT ? '🎁 NFT Holder Benefits Active!\n' : ''}📊 Your Power Station is now generating rewards!\n\n🔗 Transaction: ${signature.substring(0, 8)}...`);
                     await loadUserData();
                     await loadGridStats();
                     await loadLeaderboard();
                 } else {
-                    alert(`❌ ${result.error}`);
+                    alert(`❌ ${result.error}\n\nTokens were transferred but stake creation failed. Please contact support with this signature:\n${signature}`);
                 }
+                
             } catch (error) {
                 console.error('Error staking:', error);
-                alert('Failed to create stake. Please try again.');
+                
+                if (error.message && error.message.includes('User rejected')) {
+                    alert('❌ Transaction cancelled\n\nYou rejected the transaction in your wallet.');
+                } else if (error.message && error.message.includes('insufficient')) {
+                    alert('❌ Insufficient Balance\n\nYou don\'t have enough PLUGU tokens or SOL for gas fees.\n\nRequired:\n• ' + formatNumber(amount) + ' PLUGU tokens\n• ~0.000005 SOL for transaction fee');
+                } else {
+                    alert(`❌ Failed to stake tokens\n\nError: ${error.message || 'Unknown error'}\n\nPlease try again or contact support.`);
+                }
             }
         }
 
