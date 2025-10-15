@@ -1,14 +1,20 @@
 {
-  "name": "plugumons-backend",
+  "name": "plugumons-staking",
   "version": "1.0.0",
+  "description": "Plugumons PLUGU Token Staking Platform on Solana",
   "main": "server.js",
   "scripts": {
-    "start": "node server.js"
+    "start": "node server.js",
+    "dev": "node server.js",
+    "prod": "NODE_ENV=production node server.js"
   },
-  "keywords": [],
-  "author": "",
-  "license": "ISC",
-  "description": "",
+  "keywords": ["solana", "staking", "plugu", "plugumons", "defi", "nft"],
+  "author": "Plugumons Team",
+  "license": "MIT",
+  "engines": {
+    "node": ">=18.0.0",
+    "npm": ">=9.0.0"
+  },
   "dependencies": {
     "@solana/spl-token": "^0.4.14",
     "@solana/web3.js": "^1.98.4",
