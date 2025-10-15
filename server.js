@@ -101,10 +101,10 @@ app.get("/api/balance/:walletAddress", async (req, res) => {
   }
 });
 
-// Create new stake
-app.post("/api/stake", async (req, res) => {
+// Create stake transaction (returns unsigned transaction)
+app.post("/api/create-stake-transaction", async (req, res) => {
   try {
-    const { walletAddress, amount, lockPeriod, signature } = req.body;
+    const { walletAddress, amount, lockPeriod } = req.body;
     
     // Validate inputs
     if (!walletAddress || !amount || !lockPeriod) {
@@ -114,23 +114,104 @@ app.post("/api/stake", async (req, res) => {
       });
     }
 
-    // Verify transaction signature if provided
-    if (signature) {
-      try {
-        const verification = await solanaService.verifyStakeTransaction(signature);
-        if (!verification.valid) {
-          return res.status(400).json({ 
-            success: false, 
-            error: verification.error || 'Transaction not found or failed. Please check the signature and try again.' 
-          });
-        }
-        console.log('Transaction verified:', signature);
-      } catch (verifyError) {
-        console.error('Verification error:', verifyError);
-        // Continue anyway - manual verification can be done later
-      }
+    // Import Solana libraries
+    const { Connection, PublicKey, Transaction, TransactionInstruction } = require('@solana/web3.js');
+    
+    const STAKING_WALLET = 'HaLue8w9EcBS4j3vTzHoyBcTvZCV6dWPd9YQce7S2QZZ';
+    const PLUGU_TOKEN_MINT = '12EU3xpACKJEZoSZgQUGnv1NgFucRNDdJaPgwuicpump';
+    const TOKEN_PROGRAM_ID = new PublicKey('TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA');
+    
+    const connection = new Connection('https://api.mainnet-beta.solana.com', 'confirmed');
+    
+    const fromPubkey = new PublicKey(walletAddress);
+    const toPubkey = new PublicKey(STAKING_WALLET);
+    const mintPubkey = new PublicKey(PLUGU_TOKEN_MINT);
+    
+    // Get token accounts
+    const fromTokenAccounts = await connection.getParsedTokenAccountsByOwner(fromPubkey, { mint: mintPubkey });
+    const toTokenAccounts = await connection.getParsedTokenAccountsByOwner(toPubkey, { mint: mintPubkey });
+    
+    if (fromTokenAccounts.value.length === 0) {
+      return res.status(400).json({ 
+        success: false, 
+        error: 'No PLUGU tokens found in your wallet' 
+      });
+    }
+    
+    if (toTokenAccounts.value.length === 0) {
+      return res.status(400).json({ 
+        success: false, 
+        error: 'Staking wallet not configured properly' 
+      });
+    }
+    
+    const userTokenAccount = fromTokenAccounts.value[0].pubkey;
+    const stakingTokenAccount = toTokenAccounts.value[0].pubkey;
+    
+    // Create transfer instruction
+    const tokenAmount = BigInt(Math.floor(amount * 1_000_000_000));
+    const data = new Uint8Array(9);
+    data[0] = 3; // Transfer instruction
+    new DataView(data.buffer, 1).setBigUint64(0, tokenAmount, true);
+    
+    const transferInstruction = new TransactionInstruction({
+      keys: [
+        { pubkey: userTokenAccount, isSigner: false, isWritable: true },
+        { pubkey: stakingTokenAccount, isSigner: false, isWritable: true },
+        { pubkey: fromPubkey, isSigner: true, isWritable: false }
+      ],
+      programId: TOKEN_PROGRAM_ID,
+      data
+    });
+    
+    // Create transaction
+    const transaction = new Transaction().add(transferInstruction);
+    transaction.feePayer = fromPubkey;
+    const { blockhash } = await connection.getLatestBlockhash();
+    transaction.recentBlockhash = blockhash;
+    
+    // Serialize and send to frontend
+    const serializedTransaction = transaction.serialize({ requireAllSignatures: false }).toString('base64');
+    
+    res.json({ 
+      success: true, 
+      transaction: serializedTransaction 
+    });
+    
+  } catch (error) {
+    console.error('Error creating transaction:', error);
+    res.status(500).json({ success: false, error: error.message });
+  }
+});
+
+// Confirm stake after transaction
+app.post("/api/confirm-stake", async (req, res) => {
+  try {
+    const { walletAddress, amount, lockPeriod, signature } = req.body;
+    
+    // Validate inputs
+    if (!walletAddress || !amount || !lockPeriod || !signature) {
+      return res.status(400).json({ 
+        success: false, 
+        error: 'Missing required fields' 
+      });
     }
 
+    // Verify transaction
+    try {
+      const verification = await solanaService.verifyStakeTransaction(signature);
+      if (!verification.valid) {
+        return res.status(400).json({ 
+          success: false, 
+          error: 'Transaction verification failed' 
+        });
+      }
+    } catch (verifyError) {
+      console.error('Verification error:', verifyError);
+      // Continue anyway - can verify manually
+    }
+
+    // Create stake in database
     const result = await stakingService.createStake(walletAddress, amount, lockPeriod);
     
     if (result.success) {
@@ -139,6 +220,7 @@ app.post("/api/stake", async (req, res) => {
       res.status(400).json(result);
     }
   } catch (error) {
+    console.error('Error confirming stake:', error);
     res.status(500).json({ success: false, error: error.message });
   }
 });
