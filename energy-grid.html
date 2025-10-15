@@ -826,6 +826,145 @@
     <div class="lightning" style="left:80%; animation-delay: 1s;">⚡</div>
     <div class="lightning" style="left:50%; animation-delay: 3s;">⚡</div>
 
+    <!-- Documentation Modal -->
+    <div id="docsModal" class="modal-overlay">
+        <div class="modal-content" style="max-width: 800px; max-height: 90vh; overflow-y: auto;">
+            <button class="close-btn" onclick="closeDocsModal()">×</button>
+            <div class="modal-header">
+                <h2 class="modal-title">⚡ Staking Documentation</h2>
+                <p class="modal-subtitle">Everything you need to know about Plugumons Energy Grid</p>
+            </div>
+            <div style="padding: 24px; color: #fff;">
+                
+                <!-- Staking Overview -->
+                <div style="margin-bottom: 32px;">
+                    <h3 style="color: #ffeb3b; font-size: 1.3rem; margin-bottom: 12px;">🎯 Staking Overview</h3>
+                    <p style="line-height: 1.6; color: rgba(255,255,255,0.9);">
+                        Stake your PLUGU tokens to earn rewards and power up the Energy Grid! Choose from multiple lock periods 
+                        with different APR rates. The longer you stake, the higher your rewards!
+                    </p>
+                </div>
+
+                <!-- NFT Holders -->
+                <div style="background: rgba(0,255,153,0.1); border: 2px solid rgba(0,255,153,0.3); border-radius: 12px; padding: 20px; margin-bottom: 24px;">
+                    <h3 style="color: #00ff99; font-size: 1.3rem; margin-bottom: 12px;">🎁 NFT Holder Benefits</h3>
+                    <p style="line-height: 1.6; margin-bottom: 12px;">
+                        <strong>Who qualifies?</strong> Anyone holding a Plugumons NFT (Collection: 4Qy6grGLpMBk2q13tPt32UkCzahWCSLEBLbRvHCZYket)
+                    </p>
+                    <div style="margin-top: 16px;">
+                        <p style="margin-bottom: 8px; color: #00ff99; font-weight: 700;">✨ Special Advantages:</p>
+                        <ul style="list-style: none; padding-left: 0; line-height: 2;">
+                            <li>✅ <strong>No Lock Period</strong> - Unstake anytime, no waiting!</li>
+                            <li>✅ <strong>2x Multiplier</strong> - After reaching halfway point of lock period</li>
+                            <li>✅ <strong>Higher APR</strong> - Earn double the standard rate</li>
+                        </ul>
+                    </div>
+                    <div style="background: rgba(0,0,0,0.3); padding: 12px; border-radius: 8px; margin-top: 12px;">
+                        <p style="font-size: 0.9rem; margin: 0;">
+                            <strong>How the 2x Multiplier Works:</strong><br>
+                            • 30-Day stake → 2x APR kicks in after 15 days (5% becomes 10%)<br>
+                            • 90-Day stake → 2x APR kicks in after 45 days (10% becomes 20%)<br>
+                            • 365-Day stake → 2x APR kicks in after 182 days (20% becomes 40%)
+                        </p>
+                    </div>
+                </div>
+
+                <!-- Non-NFT Holders -->
+                <div style="background: rgba(255,235,59,0.1); border: 2px solid rgba(255,235,59,0.3); border-radius: 12px; padding: 20px; margin-bottom: 24px;">
+                    <h3 style="color: #ffeb3b; font-size: 1.3rem; margin-bottom: 12px;">⚡ Standard Staking (Non-NFT Holders)</h3>
+                    <p style="line-height: 1.6; margin-bottom: 12px;">
+                        <strong>Standard users earn rewards with locked staking periods.</strong>
+                    </p>
+                    <div style="margin-top: 16px;">
+                        <p style="margin-bottom: 8px; color: #ffeb3b; font-weight: 700;">📋 Staking Rules:</p>
+                        <ul style="list-style: none; padding-left: 0; line-height: 2;">
+                            <li>🔒 <strong>Tokens are LOCKED</strong> - Cannot unstake before lock period ends</li>
+                            <li>⏰ <strong>Choose Your Period</strong> - 30, 90, or 365 days</li>
+                            <li>📈 <strong>Fixed APR</strong> - Rate guaranteed for entire period</li>
+                            <li>💰 <strong>Claim Anytime</strong> - Claim rewards while staking</li>
+                        </ul>
+                    </div>
+                    <div style="background: rgba(0,0,0,0.3); padding: 12px; border-radius: 8px; margin-top: 12px;">
+                        <table style="width: 100%; font-size: 0.9rem;">
+                            <tr>
+                                <td style="padding: 8px;"><strong>30 Days:</strong></td>
+                                <td style="padding: 8px; color: #00ff99;">5% Fixed APR</td>
+                            </tr>
+                            <tr>
+                                <td style="padding: 8px;"><strong>90 Days:</strong></td>
+                                <td style="padding: 8px; color: #00ff99;">10% Fixed APR</td>
+                            </tr>
+                            <tr>
+                                <td style="padding: 8px;"><strong>365 Days:</strong></td>
+                                <td style="padding: 8px; color: #00ff99;">20% Fixed APR</td>
+                            </tr>
+                        </table>
+                    </div>
+                </div>
+
+                <!-- Grid Power System -->
+                <div style="background: rgba(0,123,255,0.1); border: 2px solid rgba(0,123,255,0.3); border-radius: 12px; padding: 20px; margin-bottom: 24px;">
+                    <h3 style="color: #00c3ff; font-size: 1.3rem; margin-bottom: 12px;">⚡ Total Grid Power</h3>
+                    <p style="line-height: 1.6; margin-bottom: 12px;">
+                        <strong>Community Power Boost!</strong> When the community stakes 200,000,000 PLUGU tokens, the grid reaches 100% charge 
+                        and ALL stakers (NFT and non-NFT) get <span style="color: #00ff99; font-weight: 700;">2x APR BOOST!</span>
+                    </p>
+                    <div style="margin-top: 16px;">
+                        <p style="margin-bottom: 8px; color: #00c3ff; font-weight: 700;">🔋 Grid Boost Benefits:</p>
+                        <ul style="list-style: none; padding-left: 0; line-height: 2;">
+                            <li>⚡ <strong>All APRs Double</strong> - Everyone earns 2x rewards!</li>
+                            <li>🎁 <strong>Stacks with NFT Bonuses</strong> - NFT holders can earn up to 80% APR!</li>
+                            <li>🔄 <strong>Always Active at 100%</strong> - Boost remains as long as grid is charged</li>
+                        </ul>
+                    </div>
+                    <div style="background: rgba(0,0,0,0.3); padding: 12px; border-radius: 8px; margin-top: 12px;">
+                        <p style="font-size: 0.9rem; margin: 0;">
+                            <strong>Example with Grid Boost:</strong><br>
+                            • Standard 365-day: 20% → <span style="color: #00ff99;">40% APR</span><br>
+                            • NFT 365-day (after halfway): 40% → <span style="color: #00ff99;">80% APR</span>
+                        </p>
+                    </div>
+                </div>
+
+                <!-- Power Stations -->
+                <div style="margin-bottom: 24px;">
+                    <h3 style="color: #ffeb3b; font-size: 1.3rem; margin-bottom: 12px;">🏭 Your Power Stations</h3>
+                    <p style="line-height: 1.6; margin-bottom: 12px;">
+                        Each stake you create becomes a "Power Station" that generates rewards over time.
+                    </p>
+                    <ul style="line-height: 1.8;">
+                        <li><strong>View All Stakes</strong> - See each power station with real-time rewards</li>
+                        <li><strong>Track Progress</strong> - Monitor days remaining and percentage complete</li>
+                        <li><strong>Claim Rewards</strong> - Collect your earned PLUGU anytime</li>
+                        <li><strong>Unstake</strong> - Withdraw when lock period ends (or anytime for NFT holders)</li>
+                    </ul>
+                </div>
+
+                <!-- Leaderboard -->
+                <div style="margin-bottom: 24px;">
+                    <h3 style="color: #ffeb3b; font-size: 1.3rem; margin-bottom: 12px;">🏆 Top Power Plants</h3>
+                    <p style="line-height: 1.6;">
+                        The leaderboard shows the top 5 stakers by total staked amount. Compete with the community 
+                        to see who powers the grid the most!
+                    </p>
+                </div>
+
+                <!-- How to Get Started -->
+                <div style="background: rgba(255,235,59,0.1); border-left: 4px solid #ffeb3b; padding: 16px; border-radius: 4px;">
+                    <h3 style="color: #ffeb3b; font-size: 1.2rem; margin-bottom: 12px;">🚀 Getting Started</h3>
+                    <ol style="line-height: 2; padding-left: 20px;">
+                        <li>Connect your Solana wallet (Phantom, Solflare, or Backpack)</li>
+                        <li>Use the Reward Calculator to estimate your earnings</li>
+                        <li>Choose your staking period (30, 90, or 365 days)</li>
+                        <li>Click "Start Staking" and confirm the transaction</li>
+                        <li>Watch your Power Station generate rewards!</li>
+                    </ol>
+                </div>
+
+            </div>
+        </div>
+    </div>
+
     <!-- Wallet Selection Modal -->
     <div id="walletModal" class="modal-overlay">
         <div class="modal-content">
