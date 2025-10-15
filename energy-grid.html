@@ -1706,91 +1706,93 @@
             alert(processingMsg);
 
             try {
-                // Import Solana web3 from CDN if not already loaded
-                if (typeof window.solanaWeb3 === 'undefined') {
-                    // Load Solana Web3.js from CDN
-                    const script = document.createElement('script');
-                    script.src = 'https://unpkg.com/@solana/web3.js@latest/lib/index.iife.min.js';
-                    document.head.appendChild(script);
-                    await new Promise(resolve => script.onload = resolve);
-                }
-
-                const { Connection, PublicKey, Transaction, SystemProgram, LAMPORTS_PER_SOL } = window.solanaWeb3;
+                const { Connection, PublicKey, Transaction, TransactionInstruction } = window.solanaWeb3;
                 
-                // Connect to Solana
+                // Connect to Solana mainnet
                 const connection = new Connection('https://api.mainnet-beta.solana.com', 'confirmed');
                 
-                // Staking wallet address (from backend)
+                // Staking wallet address
                 const STAKING_WALLET = 'HaLue8w9EcBS4j3vTzHoyBcTvZCV6dWPd9YQce7S2QZZ';
                 const PLUGU_TOKEN_MINT = '12EU3xpACKJEZoSZgQUGnv1NgFucRNDdJaPgwuicpump';
-                
-                // Get token program
                 const TOKEN_PROGRAM_ID = new PublicKey('TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA');
                 
-                // User's wallet public key
+                // Get user's token account
                 const fromPubkey = new PublicKey(connectedWalletAddress);
                 const toPubkey = new PublicKey(STAKING_WALLET);
                 const mintPubkey = new PublicKey(PLUGU_TOKEN_MINT);
                 
-                // Get associated token accounts
-                const fromTokenAccount = await connection.getParsedTokenAccountsByOwner(fromPubkey, { mint: mintPubkey });
+                // Find associated token accounts
+                const fromTokenAccounts = await connection.getParsedTokenAccountsByOwner(fromPubkey, { mint: mintPubkey });
                 
-                if (fromTokenAccount.value.length === 0) {
-                    alert('❌ Error: No PLUGU tokens found in your wallet!\n\nPlease make sure you have PLUGU tokens to stake.');
+                if (fromTokenAccounts.value.length === 0) {
+                    alert('❌ No PLUGU tokens found!\n\nPlease make sure you have PLUGU tokens in your wallet.');
                     return;
                 }
                 
-                const userTokenAccount = fromTokenAccount.value[0].pubkey;
+                const userTokenAccount = fromTokenAccounts.value[0].pubkey;
+                const userBalance = fromTokenAccounts.value[0].account.data.parsed.info.tokenAmount.uiAmount;
                 
-                // Get recipient token account
-                const toTokenAccount = await connection.getParsedTokenAccountsByOwner(toPubkey, { mint: mintPubkey });
-                
-                if (toTokenAccount.value.length === 0) {
-                    alert('❌ Error: Staking wallet not configured properly.\n\nPlease contact support.');
+                if (userBalance < amount) {
+                    alert(`❌ Insufficient PLUGU balance!\n\nYou have: ${formatNumber(userBalance)} PLUGU\nRequired: ${formatNumber(amount)} PLUGU`);
                     return;
                 }
                 
-                const stakingTokenAccount = toTokenAccount.value[0].pubkey;
+                // Find staking wallet token account
+                const toTokenAccounts = await connection.getParsedTokenAccountsByOwner(toPubkey, { mint: mintPubkey });
                 
-                // Create transfer instruction
-                const tokenAmount = amount * 1_000_000_000; // Convert to smallest unit (9 decimals)
+                if (toTokenAccounts.value.length === 0) {
+                    alert('❌ Staking wallet not configured.\n\nPlease contact support.');
+                    return;
+                }
                 
-                // Create transaction
-                const transaction = new Transaction();
+                const stakingTokenAccount = toTokenAccounts.value[0].pubkey;
                 
-                // Add transfer instruction using System Program for SPL tokens
-                const transferIx = {
-                    keys: [
-                        { pubkey: userTokenAccount, isSigner: false, isWritable: true },
-                        { pubkey: stakingTokenAccount, isSigner: false, isWritable: true },
-                        { pubkey: fromPubkey, isSigner: true, isWritable: false }
-                    ],
-                    programId: TOKEN_PROGRAM_ID,
-                    data: Buffer.from([
-                        3, // Transfer instruction
-                        ...new Uint8Array(new BigUint64Array([BigInt(tokenAmount)]).buffer)
-                    ])
+                // Convert amount to smallest unit (assuming 9 decimals for PLUGU)
+                const tokenAmount = BigInt(Math.floor(amount * 1_000_000_000));
+                
+                // Create SPL Token transfer instruction
+                const dataLayout = {
+                    index: 3, // Transfer instruction
+                    layout: [tokenAmount]
                 };
                 
-                transaction.add(transferIx);
+                const keys = [
+                    { pubkey: userTokenAccount, isSigner: false, isWritable: true },
+                    { pubkey: stakingTokenAccount, isSigner: false, isWritable: true },
+                    { pubkey: fromPubkey, isSigner: true, isWritable: false }
+                ];
+                
+                // Encode transfer amount (little-endian, 8 bytes)
+                const data = new Uint8Array(9);
+                data[0] = 3; // Transfer instruction index
+                const view = new DataView(data.buffer, 1);
+                view.setBigUint64(0, tokenAmount, true); // true = little-endian
+                
+                const transferInstruction = new TransactionInstruction({
+                    keys,
+                    programId: TOKEN_PROGRAM_ID,
+                    data
+                });
+                
+                // Create and configure transaction
+                const transaction = new Transaction().add(transferInstruction);
                 transaction.feePayer = fromPubkey;
                 
-                // Get recent blockhash
-                const { blockhash } = await connection.getLatestBlockhash();
+                const { blockhash } = await connection.getLatestBlockhash('finalized');
                 transaction.recentBlockhash = blockhash;
                 
-                // Sign and send transaction using wallet
+                // Sign and send using wallet
                 let signature;
                 
-                if (connectedWalletType === 'solflare') {
+                if (connectedWalletType === 'phantom' || connectedWalletType === 'backpack') {
+                    const signed = await connectedWalletProvider.signAndSendTransaction(transaction);
+                    signature = signed.signature;
+                } else if (connectedWalletType === 'solflare') {
                     const signed = await connectedWalletProvider.signTransaction(transaction);
                     signature = await connection.sendRawTransaction(signed.serialize());
-                } else {
-                    const { signature: sig } = await connectedWalletProvider.signAndSendTransaction(transaction);
-                    signature = sig;
                 }
                 
-                alert(`✅ Transaction sent!\n\nSignature: ${signature}\n\n⏳ Waiting for confirmation...`);
+                alert(`✅ Transaction sent!\n\nSignature: ${signature}\n\n⏳ Confirming on blockchain...`);
                 
                 // Wait for confirmation
                 await connection.confirmTransaction(signature, 'confirmed');
