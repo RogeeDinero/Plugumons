@@ -1281,6 +1281,14 @@
             document.getElementById('walletModal').classList.remove('show');
         }
 
+        function openDocsModal() {
+            document.getElementById('docsModal').classList.add('show');
+        }
+
+        function closeDocsModal() {
+            document.getElementById('docsModal').classList.remove('show');
+        }
+
         async function connectWallet(walletType) {
             try {
                 let provider;
