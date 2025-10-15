@@ -1702,116 +1702,103 @@
             }
 
             try {
-                const { Connection, PublicKey, Transaction, TransactionInstruction } = window.solanaWeb3;
-                
-                // Use multiple RPC endpoints with fallback
-                const RPC_ENDPOINTS = [
-                    'https://solana-mainnet.g.alchemy.com/v2/alcht_demo',
-                    'https://api.mainnet-beta.solana.com',
-                    'https://solana-api.projectserum.com'
-                ];
-                
-                let connection;
-                for (const endpoint of RPC_ENDPOINTS) {
-                    try {
-                        connection = new Connection(endpoint, 'confirmed');
-                        await connection.getLatestBlockhash(); // Test connection
-                        console.log('Connected to RPC:', endpoint);
-                        break;
-                    } catch (err) {
-                        console.log('RPC failed:', endpoint);
-                        continue;
-                    }
-                }
-                
-                if (!connection) {
-                    throw new Error('Unable to connect to Solana network. Please try again later.');
-                }
-                
-                // Staking wallet address
+                // Simplified approach: Request transfer directly from wallet
                 const STAKING_WALLET = 'HaLue8w9EcBS4j3vTzHoyBcTvZCV6dWPd9YQce7S2QZZ';
                 const PLUGU_TOKEN_MINT = '12EU3xpACKJEZoSZgQUGnv1NgFucRNDdJaPgwuicpump';
-                const TOKEN_PROGRAM_ID = new PublicKey('TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA');
                 
-                // Get user's token account
-                const fromPubkey = new PublicKey(connectedWalletAddress);
-                const toPubkey = new PublicKey(STAKING_WALLET);
-                const mintPubkey = new PublicKey(PLUGU_TOKEN_MINT);
-                
-                // Find associated token accounts
-                const fromTokenAccounts = await connection.getParsedTokenAccountsByOwner(fromPubkey, { mint: mintPubkey });
-                
-                if (fromTokenAccounts.value.length === 0) {
-                    alert('❌ No PLUGU tokens found!\n\nPlease make sure you have PLUGU tokens in your wallet.');
-                    return;
-                }
-                
-                const userTokenAccount = fromTokenAccounts.value[0].pubkey;
-                const userBalance = fromTokenAccounts.value[0].account.data.parsed.info.tokenAmount.uiAmount;
-                
-                if (userBalance < amount) {
-                    alert(`❌ Insufficient PLUGU balance!\n\nYou have: ${formatNumber(userBalance)} PLUGU\nRequired: ${formatNumber(amount)} PLUGU`);
-                    return;
-                }
-                
-                // Find staking wallet token account
-                const toTokenAccounts = await connection.getParsedTokenAccountsByOwner(toPubkey, { mint: mintPubkey });
-                
-                if (toTokenAccounts.value.length === 0) {
-                    alert('❌ Staking wallet not configured.\n\nPlease contact support.');
-                    return;
-                }
-                
-                const stakingTokenAccount = toTokenAccounts.value[0].pubkey;
-                
-                // Convert amount to smallest unit (assuming 9 decimals for PLUGU)
-                const tokenAmount = BigInt(Math.floor(amount * 1_000_000_000));
-                
-                // Create SPL Token transfer instruction
-                const dataLayout = {
-                    index: 3, // Transfer instruction
-                    layout: [tokenAmount]
-                };
-                
-                const keys = [
-                    { pubkey: userTokenAccount, isSigner: false, isWritable: true },
-                    { pubkey: stakingTokenAccount, isSigner: false, isWritable: true },
-                    { pubkey: fromPubkey, isSigner: true, isWritable: false }
-                ];
-                
-                // Encode transfer amount (little-endian, 8 bytes)
-                const data = new Uint8Array(9);
-                data[0] = 3; // Transfer instruction index
-                const view = new DataView(data.buffer, 1);
-                view.setBigUint64(0, tokenAmount, true); // true = little-endian
-                
-                const transferInstruction = new TransactionInstruction({
-                    keys,
-                    programId: TOKEN_PROGRAM_ID,
-                    data
-                });
-                
-                // Create and configure transaction
-                const transaction = new Transaction().add(transferInstruction);
-                transaction.feePayer = fromPubkey;
-                
-                const { blockhash } = await connection.getLatestBlockhash('finalized');
-                transaction.recentBlockhash = blockhash;
-                
-                // Sign and send using wallet
                 let signature;
                 
-                if (connectedWalletType === 'phantom' || connectedWalletType === 'backpack') {
-                    const signed = await connectedWalletProvider.signAndSendTransaction(transaction);
-                    signature = signed.signature;
-                } else if (connectedWalletType === 'solflare') {
-                    const signed = await connectedWalletProvider.signTransaction(transaction);
-                    signature = await connection.sendRawTransaction(signed.serialize());
+                // For Phantom wallet - use their built-in transfer
+                if (connectedWalletType === 'phantom') {
+                    // Request transfer using Phantom's native method
+                    const transaction = {
+                        type: 'transfer',
+                        params: {
+                            to: STAKING_WALLET,
+                            amount: amount,
+                            mint: PLUGU_TOKEN_MINT,
+                            decimals: 9
+                        }
+                    };
+                    
+                    // This will open Phantom's approval UI
+                    const result = await connectedWalletProvider.request({
+                        method: 'signAndSendTransaction',
+                        params: {
+                            message: `Transfer ${amount} PLUGU tokens to staking contract`
+                        }
+                    });
+                    
+                    signature = result.signature;
+                    
+                } else {
+                    // For Solflare and Backpack - use standard Web3.js
+                    const { Connection, PublicKey, Transaction, TransactionInstruction } = window.solanaWeb3;
+                    
+                    // Use the wallet's connection (they manage RPC)
+                    const connection = new Connection('https://api.mainnet-beta.solana.com', 'confirmed');
+                    
+                    const fromPubkey = new PublicKey(connectedWalletAddress);
+                    const toPubkey = new PublicKey(STAKING_WALLET);
+                    const mintPubkey = new PublicKey(PLUGU_TOKEN_MINT);
+                    const TOKEN_PROGRAM_ID = new PublicKey('TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA');
+                    
+                    // Get token accounts
+                    const fromTokenAccounts = await connection.getParsedTokenAccountsByOwner(fromPubkey, { mint: mintPubkey });
+                    const toTokenAccounts = await connection.getParsedTokenAccountsByOwner(toPubkey, { mint: mintPubkey });
+                    
+                    if (fromTokenAccounts.value.length === 0) {
+                        alert('❌ No PLUGU tokens found in your wallet!');
+                        return;
+                    }
+                    
+                    if (toTokenAccounts.value.length === 0) {
+                        alert('❌ Staking wallet not configured. Contact support.');
+                        return;
+                    }
+                    
+                    const userBalance = fromTokenAccounts.value[0].account.data.parsed.info.tokenAmount.uiAmount;
+                    if (userBalance < amount) {
+                        alert(`❌ Insufficient balance!\n\nYou have: ${formatNumber(userBalance)} PLUGU\nNeed: ${formatNumber(amount)} PLUGU`);
+                        return;
+                    }
+                    
+                    const userTokenAccount = fromTokenAccounts.value[0].pubkey;
+                    const stakingTokenAccount = toTokenAccounts.value[0].pubkey;
+                    
+                    // Build transfer instruction
+                    const tokenAmount = BigInt(Math.floor(amount * 1_000_000_000));
+                    const data = new Uint8Array(9);
+                    data[0] = 3;
+                    new DataView(data.buffer, 1).setBigUint64(0, tokenAmount, true);
+                    
+                    const transferInstruction = new TransactionInstruction({
+                        keys: [
+                            { pubkey: userTokenAccount, isSigner: false, isWritable: true },
+                            { pubkey: stakingTokenAccount, isSigner: false, isWritable: true },
+                            { pubkey: fromPubkey, isSigner: true, isWritable: false }
+                        ],
+                        programId: TOKEN_PROGRAM_ID,
+                        data
+                    });
+                    
+                    const transaction = new Transaction().add(transferInstruction);
+                    transaction.feePayer = fromPubkey;
+                    const { blockhash } = await connection.getLatestBlockhash();
+                    transaction.recentBlockhash = blockhash;
+                    
+                    // Sign with wallet - this opens the wallet popup
+                    if (connectedWalletType === 'solflare') {
+                        const signed = await connectedWalletProvider.signTransaction(transaction);
+                        signature = await connection.sendRawTransaction(signed.serialize());
+                    } else {
+                        const result = await connectedWalletProvider.signAndSendTransaction(transaction);
+                        signature = result.signature;
+                    }
+                    
+                    console.log('Transaction sent:', signature);
+                    await connection.confirmTransaction(signature, 'confirmed');
                 }
-                
-                // Wait for confirmation (no alert, let wallet handle UI)
-                console.log('Transaction sent:', signature);
-                await connection.confirmTransaction(signature, 'confirmed');
                 
                 // Now create the stake in backend
                 const response = await fetch(`${API_BASE_URL}/api/stake`, {
