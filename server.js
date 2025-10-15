@@ -176,8 +176,21 @@ app.post("/api/claim", async (req, res) => {
     const result = await stakingService.claimRewards(stakeId, walletAddress);
     
     if (result.success) {
-      // Optional: Send actual tokens here
-      // await solanaService.sendRewards(walletAddress, result.amount);
+      // Send actual tokens (PRODUCTION MODE)
+      // Comment out the line below to return to demo mode
+      try {
+        const transferResult = await solanaService.sendRewards(walletAddress, result.amount);
+        if (transferResult.success) {
+          result.transactionSignature = transferResult.signature;
+          result.message += `\n\nTokens sent! Signature: ${transferResult.signature}`;
+        } else {
+          // Token transfer failed, but rewards were tracked
+          result.warning = `Rewards claimed in database but token transfer failed: ${transferResult.error}`;
+        }
+      } catch (transferError) {
+        console.error('Token transfer error:', transferError);
+        result.warning = 'Rewards claimed but token transfer encountered an error. Contact support.';
+      }
       res.json(result);
     } else {
       res.status(400).json(result);
