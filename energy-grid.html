@@ -1376,22 +1376,24 @@
                 // Load user data
                 await loadUserData();
 
-                // Listen for account changes
-                provider.on('accountChanged', (publicKey) => {
-                    if (publicKey) {
-                        connectedWalletAddress = publicKey.toString();
-                        const newShortAddress = publicKey.toString().slice(0, 4) + '...' + publicKey.toString().slice(-4);
-                        document.getElementById('walletAddress').textContent = newShortAddress;
-                        loadUserData();
-                    } else {
-                        disconnectWallet();
-                    }
-                });
+                // Listen for account changes (if supported)
+                if (provider.on) {
+                    provider.on('accountChanged', (publicKey) => {
+                        if (publicKey) {
+                            connectedWalletAddress = publicKey.toString();
+                            const newShortAddress = publicKey.toString().slice(0, 4) + '...' + publicKey.toString().slice(-4);
+                            document.getElementById('walletAddress').textContent = newShortAddress;
+                            loadUserData();
+                        } else {
+                            disconnectWallet();
+                        }
+                    });
 
-                // Listen for disconnect
-                provider.on('disconnect', () => {
-                    disconnectWallet();
-                });
+                    // Listen for disconnect
+                    provider.on('disconnect', () => {
+                        disconnectWallet();
+                    });
+                }
 
             } catch (err) {
                 console.error('Wallet connection error:', err);
