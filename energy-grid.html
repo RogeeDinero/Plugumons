@@ -1404,7 +1404,14 @@
         async function disconnectWallet() {
             if (connectedWalletProvider) {
                 try {
-                    await connectedWalletProvider.disconnect();
+                    // Solflare uses different disconnect method
+                    if (connectedWalletType === 'solflare') {
+                        if (connectedWalletProvider.disconnect) {
+                            await connectedWalletProvider.disconnect();
+                        }
+                    } else {
+                        await connectedWalletProvider.disconnect();
+                    }
                 } catch (err) {
                     console.error('Disconnect error:', err);
                 }
