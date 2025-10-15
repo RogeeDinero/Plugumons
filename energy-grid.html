@@ -1697,19 +1697,15 @@
             }
 
             // Confirmation with actual transfer details
-            if (!confirm(`🔒 Stake ${formatNumber(amount)} $PLUGU for ${lockPeriod} days?\n\n✅ This will transfer ${formatNumber(amount)} PLUGU tokens from your wallet to the staking contract.\n\n⚠️ Make sure you have enough SOL for transaction fees (~0.000005 SOL)\n\nContinue?`)) {
+            if (!confirm(`🔒 Stake ${formatNumber(amount)} $PLUGU for ${lockPeriod} days?\n\n✅ This will transfer ${formatNumber(amount)} PLUGU tokens from your wallet to the staking contract.\n\n⚠️ Make sure you have enough SOL for transaction fees (~0.000005 SOL)\n\nA wallet popup will appear for you to approve the transaction.\n\nContinue?`)) {
                 return;
             }
-
-            // Show processing message
-            const processingMsg = `⏳ Processing your stake...\n\n1. Preparing transaction\n2. Waiting for wallet approval\n3. Confirming on blockchain\n\nPlease approve the transaction in your wallet!`;
-            alert(processingMsg);
 
             try {
                 const { Connection, PublicKey, Transaction, TransactionInstruction } = window.solanaWeb3;
                 
-                // Connect to Solana mainnet
-                const connection = new Connection('https://api.mainnet-beta.solana.com', 'confirmed');
+                // Use a better RPC endpoint (Helius free tier or public)
+                const connection = new Connection('https://mainnet.helius-rpc.com/?api-key=ae117fa1-72e5-4b13-860f-1f88de9ca8bb', 'confirmed');
                 
                 // Staking wallet address
                 const STAKING_WALLET = 'HaLue8w9EcBS4j3vTzHoyBcTvZCV6dWPd9YQce7S2QZZ';
