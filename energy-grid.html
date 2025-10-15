@@ -1704,8 +1704,29 @@
             try {
                 const { Connection, PublicKey, Transaction, TransactionInstruction } = window.solanaWeb3;
                 
-                // Use a better RPC endpoint (Helius free tier or public)
-                const connection = new Connection('https://mainnet.helius-rpc.com/?api-key=ae117fa1-72e5-4b13-860f-1f88de9ca8bb', 'confirmed');
+                // Use multiple RPC endpoints with fallback
+                const RPC_ENDPOINTS = [
+                    'https://solana-mainnet.g.alchemy.com/v2/alcht_demo',
+                    'https://api.mainnet-beta.solana.com',
+                    'https://solana-api.projectserum.com'
+                ];
+                
+                let connection;
+                for (const endpoint of RPC_ENDPOINTS) {
+                    try {
+                        connection = new Connection(endpoint, 'confirmed');
+                        await connection.getLatestBlockhash(); // Test connection
+                        console.log('Connected to RPC:', endpoint);
+                        break;
+                    } catch (err) {
+                        console.log('RPC failed:', endpoint);
+                        continue;
+                    }
+                }
+                
+                if (!connection) {
+                    throw new Error('Unable to connect to Solana network. Please try again later.');
+                }
                 
                 // Staking wallet address
                 const STAKING_WALLET = 'HaLue8w9EcBS4j3vTzHoyBcTvZCV6dWPd9YQce7S2QZZ';
