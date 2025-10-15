@@ -114,16 +114,24 @@ app.post("/api/stake", async (req, res) => {
       });
     }
 
-    // Optional: Verify transaction signature if provided
-    if (signature) {
-      const verification = await solanaService.verifyStakeTransaction(signature);
-      if (!verification.valid) {
-        return res.status(400).json({ 
-          success: false, 
-          error: 'Invalid transaction signature' 
-        });
-      }
+    // Verify transaction signature (REQUIRED for mainnet)
+    if (!signature) {
+      return res.status(400).json({ 
+        success: false, 
+        error: 'Transaction signature required. Please transfer tokens to stake.' 
+      });
     }
+
+    const verification = await solanaService.verifyStakeTransaction(signature);
+    if (!verification.valid) {
+      return res.status(400).json({ 
+        success: false, 
+        error: verification.error || 'Invalid or failed transaction. Please try again.' 
+      });
+    }
+
+    // Verify tokens were sent to staking wallet
+    // (Additional verification could be added here to check recipient address)
 
     const result = await stakingService.createStake(walletAddress, amount, lockPeriod);
     
