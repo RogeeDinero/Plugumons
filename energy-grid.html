@@ -1179,9 +1179,31 @@
                             <option value="365">365 Days</option>
                         </select>
                     </div>
-                    <div class="apy-display">
-                        <span style="color: rgba(255,255,255,0.6); font-size: 0.875rem;">Fixed APR</span>
-                        <span style="color: #ffeb3b; font-size: 1.125rem; font-weight: 700;">5% - 30 Days <br> 10% - 90 Days <br>20% - 365 Days </span><span style="color:rgb(255,255,255,0.06); font-size: 0.875rem;">Fixed APR</span>
+                    <div class="apy-display" style="flex-direction: column; align-items: flex-start;">
+                        <div style="width: 100%; margin-bottom: 16px;">
+                            <div style="font-size: 0.875rem; font-weight: 700; color: #ffeb3b; margin-bottom: 8px;">
+                                ⚡ Non-NFT Holders (Locked)
+                            </div>
+                            <div style="display: flex; justify-content: space-between; font-size: 0.95rem; line-height: 1.8;">
+                                <div>
+                                    <div>30 Days: <span style="color: #00ff99; font-weight: 700;">5% APR</span></div>
+                                    <div>90 Days: <span style="color: #00ff99; font-weight: 700;">10% APR</span></div>
+                                    <div>365 Days: <span style="color: #00ff99; font-weight: 700;">20% APR</span></div>
+                                </div>
+                            </div>
+                        </div>
+                        <div style="width: 100%; padding-top: 16px; border-top: 1px solid rgba(255,235,59,0.2);">
+                            <div style="font-size: 0.875rem; font-weight: 700; color: #00ff99; margin-bottom: 8px;">
+                                🎁 NFT Holders (No Lock + 2x After Halfway)
+                            </div>
+                            <div style="display: flex; justify-content: space-between; font-size: 0.95rem; line-height: 1.8;">
+                                <div>
+                                    <div>30 Days: 5% → <span style="color: #00ff99; font-weight: 700;">10% APR</span> (after 15 days)</div>
+                                    <div>90 Days: 10% → <span style="color: #00ff99; font-weight: 700;">20% APR</span> (after 45 days)</div>
+                                    <div>365 Days: 20% → <span style="color: #00ff99; font-weight: 700;">40% APR</span> (after 182 days)</div>
+                                </div>
+                            </div>
+                        </div>
                     </div>
                     <div class="earnings-box">
                         <div class="earnings-header">
