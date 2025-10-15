@@ -1683,11 +1683,6 @@
                 return;
             }
 
-            if (!connectedWalletProvider) {
-                alert('Wallet provider not available. Please reconnect your wallet.');
-                return;
-            }
-
             const amount = parseFloat(document.getElementById('amount').value);
             const lockPeriod = parseInt(document.getElementById('duration').value);
 
@@ -1696,149 +1691,94 @@
                 return;
             }
 
-            // Confirmation with actual transfer details
-            if (!confirm(`🔒 Stake ${formatNumber(amount)} $PLUGU for ${lockPeriod} days?\n\n✅ This will transfer ${formatNumber(amount)} PLUGU tokens from your wallet to the staking contract.\n\n⚠️ Make sure you have enough SOL for transaction fees (~0.000005 SOL)\n\nA wallet popup will appear for you to approve the transaction.\n\nContinue?`)) {
+            // Show instructions for manual transfer
+            const STAKING_WALLET = 'HaLue8w9EcBS4j3vTzHoyBcTvZCV6dWPd9YQce7S2QZZ';
+            
+            const confirmed = confirm(
+                `🔒 STAKE ${formatNumber(amount)} $PLUGU FOR ${lockPeriod} DAYS\n\n` +
+                `STEP 1: Transfer ${formatNumber(amount)} PLUGU tokens to:\n` +
+                `${STAKING_WALLET}\n\n` +
+                `STEP 2: After transfer, come back and enter your transaction signature to activate your stake.\n\n` +
+                `⚠️ Important:\n` +
+                `• Send EXACTLY ${formatNumber(amount)} PLUGU\n` +
+                `• Keep your transaction signature\n` +
+                `• Transaction must complete before staking activates\n\n` +
+                `Ready to proceed? Click OK to see the staking address again.`
+            );
+
+            if (!confirmed) {
                 return;
             }
 
-            try {
-                // Simplified approach: Request transfer directly from wallet
-                const STAKING_WALLET = 'HaLue8w9EcBS4j3vTzHoyBcTvZCV6dWPd9YQce7S2QZZ';
-                const PLUGU_TOKEN_MINT = '12EU3xpACKJEZoSZgQUGnv1NgFucRNDdJaPgwuicpump';
-                
-                let signature;
-                
-                // For Phantom wallet - use their built-in transfer
-                if (connectedWalletType === 'phantom') {
-                    // Request transfer using Phantom's native method
-                    const transaction = {
-                        type: 'transfer',
-                        params: {
-                            to: STAKING_WALLET,
-                            amount: amount,
-                            mint: PLUGU_TOKEN_MINT,
-                            decimals: 9
-                        }
-                    };
-                    
-                    // This will open Phantom's approval UI
-                    const result = await connectedWalletProvider.request({
-                        method: 'signAndSendTransaction',
-                        params: {
-                            message: `Transfer ${amount} PLUGU tokens to staking contract`
-                        }
-                    });
-                    
-                    signature = result.signature;
-                    
-                } else {
-                    // For Solflare and Backpack - use standard Web3.js
-                    const { Connection, PublicKey, Transaction, TransactionInstruction } = window.solanaWeb3;
-                    
-                    // Use the wallet's connection (they manage RPC)
-                    const connection = new Connection('https://api.mainnet-beta.solana.com', 'confirmed');
-                    
-                    const fromPubkey = new PublicKey(connectedWalletAddress);
-                    const toPubkey = new PublicKey(STAKING_WALLET);
-                    const mintPubkey = new PublicKey(PLUGU_TOKEN_MINT);
-                    const TOKEN_PROGRAM_ID = new PublicKey('TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA');
-                    
-                    // Get token accounts
-                    const fromTokenAccounts = await connection.getParsedTokenAccountsByOwner(fromPubkey, { mint: mintPubkey });
-                    const toTokenAccounts = await connection.getParsedTokenAccountsByOwner(toPubkey, { mint: mintPubkey });
-                    
-                    if (fromTokenAccounts.value.length === 0) {
-                        alert('❌ No PLUGU tokens found in your wallet!');
-                        return;
-                    }
-                    
-                    if (toTokenAccounts.value.length === 0) {
-                        alert('❌ Staking wallet not configured. Contact support.');
-                        return;
-                    }
-                    
-                    const userBalance = fromTokenAccounts.value[0].account.data.parsed.info.tokenAmount.uiAmount;
-                    if (userBalance < amount) {
-                        alert(`❌ Insufficient balance!\n\nYou have: ${formatNumber(userBalance)} PLUGU\nNeed: ${formatNumber(amount)} PLUGU`);
-                        return;
-                    }
-                    
-                    const userTokenAccount = fromTokenAccounts.value[0].pubkey;
-                    const stakingTokenAccount = toTokenAccounts.value[0].pubkey;
-                    
-                    // Build transfer instruction
-                    const tokenAmount = BigInt(Math.floor(amount * 1_000_000_000));
-                    const data = new Uint8Array(9);
-                    data[0] = 3;
-                    new DataView(data.buffer, 1).setBigUint64(0, tokenAmount, true);
-                    
-                    const transferInstruction = new TransactionInstruction({
-                        keys: [
-                            { pubkey: userTokenAccount, isSigner: false, isWritable: true },
-                            { pubkey: stakingTokenAccount, isSigner: false, isWritable: true },
-                            { pubkey: fromPubkey, isSigner: true, isWritable: false }
-                        ],
-                        programId: TOKEN_PROGRAM_ID,
-                        data
-                    });
-                    
-                    const transaction = new Transaction().add(transferInstruction);
-                    transaction.feePayer = fromPubkey;
-                    const { blockhash } = await connection.getLatestBlockhash();
-                    transaction.recentBlockhash = blockhash;
-                    
-                    // Sign with wallet - this opens the wallet popup
-                    if (connectedWalletType === 'solflare') {
-                        const signed = await connectedWalletProvider.signTransaction(transaction);
-                        signature = await connection.sendRawTransaction(signed.serialize());
-                    } else {
-                        const result = await connectedWalletProvider.signAndSendTransaction(transaction);
-                        signature = result.signature;
-                    }
-                    
-                    console.log('Transaction sent:', signature);
-                    await connection.confirmTransaction(signature, 'confirmed');
-                }
-                
-                // Now create the stake in backend
-                const response = await fetch(`${API_BASE_URL}/api/stake`, {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({
-                        walletAddress: connectedWalletAddress,
-                        amount,
-                        lockPeriod,
-                        signature: signature
-                    })
-                });
+            // Show staking address clearly
+            const copyAddress = confirm(
+                `📋 STAKING WALLET ADDRESS:\n\n` +
+                `${STAKING_WALLET}\n\n` +
+                `1. Copy this address\n` +
+                `2. Open your wallet\n` +
+                `3. Send ${formatNumber(amount)} PLUGU to this address\n` +
+                `4. Copy the transaction signature\n` +
+                `5. Come back here to activate your stake\n\n` +
+                `Click OK to copy the address to clipboard!`
+            );
 
-                const result = await response.json();
-
-                if (result.success) {
-                    alert(`🎉 STAKE SUCCESSFUL!\n\n✅ ${formatNumber(amount)} PLUGU staked for ${lockPeriod} days!\n\n${result.hasNFT ? '🎁 NFT Holder Benefits Active!\n' : ''}📊 Your Power Station is now generating rewards!\n\n🔗 Transaction: ${signature.substring(0, 8)}...`);
-                    await loadUserData();
-                    await loadGridStats();
-                    await loadLeaderboard();
-                } else {
-                    alert(`❌ ${result.error}\n\nTokens were transferred but stake creation failed. Please contact support with this signature:\n${signature}`);
-                }
-                
-            } catch (error) {
-                console.error('Error staking:', error);
-                
-                // Better error handling
-                if (error.message && (error.message.includes('User rejected') || error.message.includes('rejected'))) {
-                    alert('❌ Transaction Cancelled\n\nYou rejected the transaction in your wallet.');
-                } else if (error.message && error.message.includes('insufficient')) {
-                    alert('❌ Insufficient Balance\n\nYou don\'t have enough PLUGU tokens or SOL for gas fees.\n\nRequired:\n• ' + formatNumber(amount) + ' PLUGU tokens\n• ~0.000005 SOL for transaction fee');
-                } else if (error.message && (error.message.includes('403') || error.message.includes('forbidden') || error.message.includes('RPC'))) {
-                    alert('❌ Network Connection Issue\n\nUnable to connect to Solana network. This is usually temporary.\n\nPlease try again in a few moments.');
-                } else if (error.message && error.message.includes('No PLUGU tokens')) {
-                    alert('❌ No PLUGU Tokens Found\n\nYour wallet doesn\'t have any PLUGU tokens to stake.\n\nPlease acquire PLUGU tokens first.');
-                } else {
-                    alert(`❌ Transaction Failed\n\n${error.message || 'Unknown error occurred'}\n\nPlease try again. If the problem persists, contact support.`);
+            if (copyAddress) {
+                // Copy to clipboard
+                try {
+                    await navigator.clipboard.writeText(STAKING_WALLET);
+                    alert('✅ Address copied to clipboard!\n\nNow go to your wallet and send the tokens.');
+                } catch (err) {
+                    alert(`📋 Staking Address:\n\n${STAKING_WALLET}\n\nPlease copy this address manually.`);
                 }
             }
+
+            // Ask for transaction signature
+            setTimeout(async () => {
+                const signature = prompt(
+                    `✅ Transfer Complete?\n\n` +
+                    `If you've sent ${formatNumber(amount)} PLUGU to the staking wallet, paste your TRANSACTION SIGNATURE below to activate your stake:\n\n` +
+                    `(You can find this in your wallet's transaction history)`
+                );
+
+                if (!signature || signature.trim() === '') {
+                    alert('⚠️ No signature provided.\n\nYour tokens are safe in the staking wallet. Come back anytime with your transaction signature to activate your stake!');
+                    return;
+                }
+
+                try {
+                    // Create stake with signature
+                    const response = await fetch(`${API_BASE_URL}/api/stake`, {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({
+                            walletAddress: connectedWalletAddress,
+                            amount,
+                            lockPeriod,
+                            signature: signature.trim()
+                        })
+                    });
+
+                    const result = await response.json();
+
+                    if (result.success) {
+                        alert(
+                            `🎉 STAKE ACTIVATED!\n\n` +
+                            `✅ ${formatNumber(amount)} PLUGU staked for ${lockPeriod} days!\n\n` +
+                            `${result.hasNFT ? '🎁 NFT Holder Benefits Active!\n' : ''}` +
+                            `📊 Your Power Station is now generating rewards!\n\n` +
+                            `🔗 Transaction: ${signature.substring(0, 16)}...`
+                        );
+                        await loadUserData();
+                        await loadGridStats();
+                        await loadLeaderboard();
+                    } else {
+                        alert(`❌ ${result.error}\n\nPlease make sure:\n• You sent the correct amount\n• The transaction is confirmed\n• The signature is correct`);
+                    }
+                } catch (error) {
+                    console.error('Error activating stake:', error);
+                    alert(`❌ Failed to activate stake\n\n${error.message || 'Unknown error'}\n\nYour tokens are safe. Try again with the transaction signature.`);
+                }
+            }, 2000);
         }
 
         // Calculator
