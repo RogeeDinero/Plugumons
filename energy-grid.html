@@ -1720,10 +1720,16 @@
             }).format(num);
         }
 
-        // Close modal when clicking outside
+        // Close modals when clicking outside
         document.getElementById('walletModal').addEventListener('click', function(e) {
             if (e.target === this) {
                 closeWalletModal();
+            }
+        });
+
+        document.getElementById('docsModal').addEventListener('click', function(e) {
+            if (e.target === this) {
+                closeDocsModal();
             }
         });
 
