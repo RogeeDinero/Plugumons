@@ -1147,7 +1147,7 @@
                     }
                     walletName = 'Phantom';
                 } else if (walletType === 'solflare') {
-                    provider = window.solflare;
+                    provider = window.solflare?.isSolflare ? window.solflare : window.solflare;
                     if (!provider) {
                         window.open('https://solflare.com/', '_blank');
                         return;
