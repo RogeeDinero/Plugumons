@@ -1727,7 +1727,15 @@
 
                 // Step 4: Deserialize transaction
                 const { Transaction } = window.solanaWeb3;
-                const transaction = Transaction.from(Buffer.from(data.transaction, 'base64'));
+                
+                // Convert base64 to Uint8Array (browser-compatible, no Buffer needed)
+                const binaryString = atob(data.transaction);
+                const bytes = new Uint8Array(binaryString.length);
+                for (let i = 0; i < binaryString.length; i++) {
+                    bytes[i] = binaryString.charCodeAt(i);
+                }
+                
+                const transaction = Transaction.from(bytes);
                 
                 console.log('Transaction deserialized, requesting signature...');
 
