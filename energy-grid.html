@@ -1324,7 +1324,8 @@
                     }
                     walletName = 'Phantom';
                 } else if (walletType === 'solflare') {
-                    provider = window.solflare?.isSolflare ? window.solflare : window.solflare;
+                    // Solflare uses a different API
+                    provider = window.solflare;
                     if (!provider) {
                         window.open('https://solflare.com/', '_blank');
                         return;
@@ -1339,11 +1340,25 @@
                     walletName = 'Backpack';
                 }
 
-                const resp = await provider.connect();
+                // Connect to wallet - Solflare has different connection flow
+                let resp;
+                let publicKey;
+                
+                if (walletType === 'solflare') {
+                    // Solflare specific connection
+                    if (!provider.isConnected) {
+                        await provider.connect();
+                    }
+                    publicKey = provider.publicKey.toString();
+                } else {
+                    // Phantom and Backpack connection
+                    resp = await provider.connect();
+                    publicKey = resp.publicKey.toString();
+                }
+                
                 connectedWalletProvider = provider;
                 connectedWalletType = walletType;
 
-                const publicKey = resp.publicKey.toString();
                 const shortAddress = publicKey.slice(0, 4) + '...' + publicKey.slice(-4);
                 
                 connectedWalletAddress = publicKey;
