@@ -1677,8 +1677,9 @@
         }
 
         async function startStaking() {
-            if (!connectedWalletAddress) {
-                alert('Please connect your wallet first!');
+            // Step 1: Verify wallet is connected
+            if (!connectedWalletAddress || !connectedWalletProvider) {
+                alert('❌ Please connect your wallet first!');
                 openWalletModal();
                 return;
             }
@@ -1687,98 +1688,107 @@
             const lockPeriod = parseInt(document.getElementById('duration').value);
 
             if (!amount || amount <= 0) {
-                alert('Please enter a valid stake amount');
+                alert('❌ Please enter a valid stake amount');
                 return;
             }
 
-            // Show instructions for manual transfer
-            const STAKING_WALLET = 'HaLue8w9EcBS4j3vTzHoyBcTvZCV6dWPd9YQce7S2QZZ';
-            
-            const confirmed = confirm(
-                `🔒 STAKE ${formatNumber(amount)} $PLUGU FOR ${lockPeriod} DAYS\n\n` +
-                `STEP 1: Transfer ${formatNumber(amount)} PLUGU tokens to:\n` +
-                `${STAKING_WALLET}\n\n` +
-                `STEP 2: After transfer, come back and enter your transaction signature to activate your stake.\n\n` +
-                `⚠️ Important:\n` +
-                `• Send EXACTLY ${formatNumber(amount)} PLUGU\n` +
-                `• Keep your transaction signature\n` +
-                `• Transaction must complete before staking activates\n\n` +
-                `Ready to proceed? Click OK to see the staking address again.`
-            );
-
-            if (!confirmed) {
+            // Step 2: Get user confirmation
+            if (!confirm(`🔒 Stake ${formatNumber(amount)} $PLUGU for ${lockPeriod} days?\n\nYour wallet will open to approve the token transfer.\n\nContinue?`)) {
                 return;
             }
 
-            // Show staking address clearly
-            const copyAddress = confirm(
-                `📋 STAKING WALLET ADDRESS:\n\n` +
-                `${STAKING_WALLET}\n\n` +
-                `1. Copy this address\n` +
-                `2. Open your wallet\n` +
-                `3. Send ${formatNumber(amount)} PLUGU to this address\n` +
-                `4. Copy the transaction signature\n` +
-                `5. Come back here to activate your stake\n\n` +
-                `Click OK to copy the address to clipboard!`
-            );
+            try {
+                console.log('Starting stake process...');
+                console.log('Wallet:', connectedWalletAddress);
+                console.log('Amount:', amount);
+                console.log('Lock Period:', lockPeriod);
 
-            if (copyAddress) {
-                // Copy to clipboard
-                try {
-                    await navigator.clipboard.writeText(STAKING_WALLET);
-                    alert('✅ Address copied to clipboard!\n\nNow go to your wallet and send the tokens.');
-                } catch (err) {
-                    alert(`📋 Staking Address:\n\n${STAKING_WALLET}\n\nPlease copy this address manually.`);
+                // Step 3: Request transaction from backend
+                const response = await fetch(`${API_BASE_URL}/api/create-stake-transaction`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        walletAddress: connectedWalletAddress,
+                        amount: amount,
+                        lockPeriod: lockPeriod
+                    })
+                });
+
+                if (!response.ok) {
+                    throw new Error(`Backend error: ${response.status} ${response.statusText}`);
                 }
+
+                const data = await response.json();
+                console.log('Backend response:', data);
+
+                if (!data.success) {
+                    throw new Error(data.error || 'Failed to create transaction');
+                }
+
+                // Step 4: Deserialize transaction
+                const { Transaction } = window.solanaWeb3;
+                const transaction = Transaction.from(Buffer.from(data.transaction, 'base64'));
+                
+                console.log('Transaction deserialized, requesting signature...');
+
+                // Step 5: Sign and send transaction with wallet
+                let signature;
+                
+                if (connectedWalletType === 'phantom' || connectedWalletType === 'backpack') {
+                    const { signature: sig } = await connectedWalletProvider.signAndSendTransaction(transaction);
+                    signature = sig;
+                } else if (connectedWalletType === 'solflare') {
+                    const signedTx = await connectedWalletProvider.signTransaction(transaction);
+                    const { Connection } = window.solanaWeb3;
+                    const connection = new Connection('https://api.mainnet-beta.solana.com', 'confirmed');
+                    signature = await connection.sendRawTransaction(signedTx.serialize());
+                    await connection.confirmTransaction(signature, 'confirmed');
+                }
+
+                console.log('Transaction signed and sent:', signature);
+
+                // Step 6: Confirm stake with backend
+                const confirmResponse = await fetch(`${API_BASE_URL}/api/confirm-stake`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        walletAddress: connectedWalletAddress,
+                        amount: amount,
+                        lockPeriod: lockPeriod,
+                        signature: signature
+                    })
+                });
+
+                const confirmData = await confirmResponse.json();
+
+                if (confirmData.success) {
+                    alert(`🎉 STAKE SUCCESSFUL!\n\n✅ ${formatNumber(amount)} PLUGU staked for ${lockPeriod} days!\n\n${confirmData.hasNFT ? '🎁 NFT Holder Benefits Active!\n' : ''}📊 Your Power Station is now generating rewards!\n\n🔗 Transaction: ${signature.substring(0, 8)}...`);
+                    await loadUserData();
+                    await loadGridStats();
+                    await loadLeaderboard();
+                } else {
+                    alert(`⚠️ Transaction sent but stake confirmation failed:\n${confirmData.error}\n\nTransaction: ${signature}\n\nContact support if needed.`);
+                }
+
+            } catch (error) {
+                console.error('Staking error:', error);
+                
+                // Better error messages
+                let errorMsg = '❌ Transaction Failed\n\n';
+                
+                if (error.message.includes('User rejected')) {
+                    errorMsg += 'You cancelled the transaction in your wallet.';
+                } else if (error.message.includes('Backend error')) {
+                    errorMsg += 'Could not connect to staking service.\n\n' + error.message;
+                } else if (error.message.includes('insufficient')) {
+                    errorMsg += 'Insufficient PLUGU tokens or SOL for gas fees.';
+                } else {
+                    errorMsg += error.message || 'Unknown error occurred.';
+                    errorMsg += '\n\nPlease check:\n• Your wallet is connected\n• You have enough PLUGU tokens\n• You have SOL for gas fees';
+                }
+                
+                alert(errorMsg);
             }
-
-            // Ask for transaction signature
-            setTimeout(async () => {
-                const signature = prompt(
-                    `✅ Transfer Complete?\n\n` +
-                    `If you've sent ${formatNumber(amount)} PLUGU to the staking wallet, paste your TRANSACTION SIGNATURE below to activate your stake:\n\n` +
-                    `(You can find this in your wallet's transaction history)`
-                );
-
-                if (!signature || signature.trim() === '') {
-                    alert('⚠️ No signature provided.\n\nYour tokens are safe in the staking wallet. Come back anytime with your transaction signature to activate your stake!');
-                    return;
-                }
-
-                try {
-                    // Create stake with signature
-                    const response = await fetch(`${API_BASE_URL}/api/stake`, {
-                        method: 'POST',
-                        headers: { 'Content-Type': 'application/json' },
-                        body: JSON.stringify({
-                            walletAddress: connectedWalletAddress,
-                            amount,
-                            lockPeriod,
-                            signature: signature.trim()
-                        })
-                    });
-
-                    const result = await response.json();
-
-                    if (result.success) {
-                        alert(
-                            `🎉 STAKE ACTIVATED!\n\n` +
-                            `✅ ${formatNumber(amount)} PLUGU staked for ${lockPeriod} days!\n\n` +
-                            `${result.hasNFT ? '🎁 NFT Holder Benefits Active!\n' : ''}` +
-                            `📊 Your Power Station is now generating rewards!\n\n` +
-                            `🔗 Transaction: ${signature.substring(0, 16)}...`
-                        );
-                        await loadUserData();
-                        await loadGridStats();
-                        await loadLeaderboard();
-                    } else {
-                        alert(`❌ ${result.error}\n\nPlease make sure:\n• You sent the correct amount\n• The transaction is confirmed\n• The signature is correct`);
-                    }
-                } catch (error) {
-                    console.error('Error activating stake:', error);
-                    alert(`❌ Failed to activate stake\n\n${error.message || 'Unknown error'}\n\nYour tokens are safe. Try again with the transaction signature.`);
-                }
-            }, 2000);
         }
 
         // Calculator
