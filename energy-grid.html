@@ -1839,12 +1839,17 @@
             } catch (error) {
                 console.error('Error staking:', error);
                 
-                if (error.message && error.message.includes('User rejected')) {
-                    alert('❌ Transaction cancelled\n\nYou rejected the transaction in your wallet.');
+                // Better error handling
+                if (error.message && (error.message.includes('User rejected') || error.message.includes('rejected'))) {
+                    alert('❌ Transaction Cancelled\n\nYou rejected the transaction in your wallet.');
                 } else if (error.message && error.message.includes('insufficient')) {
                     alert('❌ Insufficient Balance\n\nYou don\'t have enough PLUGU tokens or SOL for gas fees.\n\nRequired:\n• ' + formatNumber(amount) + ' PLUGU tokens\n• ~0.000005 SOL for transaction fee');
+                } else if (error.message && (error.message.includes('403') || error.message.includes('forbidden') || error.message.includes('RPC'))) {
+                    alert('❌ Network Connection Issue\n\nUnable to connect to Solana network. This is usually temporary.\n\nPlease try again in a few moments.');
+                } else if (error.message && error.message.includes('No PLUGU tokens')) {
+                    alert('❌ No PLUGU Tokens Found\n\nYour wallet doesn\'t have any PLUGU tokens to stake.\n\nPlease acquire PLUGU tokens first.');
                 } else {
-                    alert(`❌ Failed to stake tokens\n\nError: ${error.message || 'Unknown error'}\n\nPlease try again or contact support.`);
+                    alert(`❌ Transaction Failed\n\n${error.message || 'Unknown error occurred'}\n\nPlease try again. If the problem persists, contact support.`);
                 }
             }
         }
