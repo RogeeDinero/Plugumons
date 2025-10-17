@@ -468,4 +468,12 @@ pub enum StakingError {
     StillLocked,
     #[msg("No rewards to claim")]
     NoRewards,
+    #[msg("Invalid NFT mint address")]
+    InvalidNftMint,
+    #[msg("User does not own the required NFT")]
+    NoNftOwnership,
+    #[msg("NFT token account owner mismatch")]
+    InvalidNftOwner,
+    #[msg("Stake account owner mismatch")]
+    InvalidOwner,
 }
