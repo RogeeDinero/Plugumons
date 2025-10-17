@@ -311,11 +311,24 @@ pub struct Stake<'info> {
 }
 
 #[derive(Accounts)]
-pub struct SetNftHolder<'info> {
-    #[account(mut)]
+pub struct VerifyNftHolder<'info> {
+    #[account(
+        mut,
+        constraint = stake_account.owner == user.key() @ StakingError::InvalidOwner
+    )]
     pub stake_account: Account<'info, StakeAccount>,
     
-    pub authority: Signer<'info>,
+    pub user: Signer<'info>,
+    
+    /// User's NFT token account
+    #[account(
+        constraint = nft_token_account.owner == user.key() @ StakingError::InvalidNftOwner,
+        constraint = nft_token_account.mint == nft_mint.key() @ StakingError::InvalidNftMint
+    )]
+    pub nft_token_account: Account<'info, TokenAccount>,
+    
+    /// NFT mint account
+    pub nft_mint: Account<'info, Mint>,
 }
 
 #[derive(Accounts)]
