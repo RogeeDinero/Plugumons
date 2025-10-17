@@ -449,6 +449,13 @@ pub struct UnstakeEvent {
     pub timestamp: i64,
 }
 
+#[event]
+pub struct NftVerificationEvent {
+    pub user: Pubkey,
+    pub verified: bool,
+    pub timestamp: i64,
+}
+
 // ==================== ERRORS ====================
 
 #[error_code]
