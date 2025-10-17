@@ -73,10 +73,39 @@ pub mod plugumons_staking {
         Ok(())
     }
 
-    /// Mark stake as NFT holder (can be called by authority or verified program)
-    pub fn set_nft_holder(ctx: Context<SetNftHolder>, is_holder: bool) -> Result<()> {
+    /// Verify NFT ownership and mark stake account
+    /// Checks if user owns an NFT from the specified collection
+    pub fn verify_nft_holder(ctx: Context<VerifyNftHolder>) -> Result<()> {
         let stake_account = &mut ctx.accounts.stake_account;
-        stake_account.is_nft_holder = is_holder;
+        let nft_token_account = &ctx.accounts.nft_token_account;
+        let nft_mint = &ctx.accounts.nft_mint;
+        
+        // Verify the NFT mint address matches the required collection
+        require!(
+            nft_mint.key() == Pubkey::from_str("4Qy6grGLpMBk2q13tPt32UkCzahWCSLEBLbRvHoyBcTvHCZYket").unwrap(),
+            StakingError::InvalidNftMint
+        );
+        
+        // Verify user owns the NFT (token account has balance >= 1)
+        require!(
+            nft_token_account.amount >= 1,
+            StakingError::NoNftOwnership
+        );
+        
+        // Verify token account belongs to user
+        require!(
+            nft_token_account.owner == stake_account.owner,
+            StakingError::InvalidNftOwner
+        );
+        
+        stake_account.is_nft_holder = true;
+        
+        emit!(NftVerificationEvent {
+            user: stake_account.owner,
+            verified: true,
+            timestamp: Clock::get()?.unix_timestamp,
+        });
+        
         Ok(())
     }
 
