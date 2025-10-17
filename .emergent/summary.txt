@@ -1,0 +1,103 @@
+<analysis>
+The AI engineer successfully transitioned a basic HTML/JS/Express application into a functional, albeit custodial, staking platform. Initial tasks focused on integrating the  page, setting up an Express backend with SQLite for stake management, and handling Solana wallet connections (Phantom, Solflare). Key decisions involved using a Node.js/Express backend for API endpoints, storing staking data in SQLite, and managing environment variables for Solana RPC and the reward wallet.
+
+A significant pivot occurred when the user explicitly requested a smart contract system instead of the implemented custodial approach. The AI began structuring a Solana Anchor program, creating initial files like , , and . However, the current state indicates an incomplete Anchor project structure, specifically a missing  in the main program directory, which is essential for building. Deployment and DNS issues with Render and GoDaddy were also resolved, ensuring the  URL functions correctly, and a  subdomain was set up for the smart contract integration.
+</analysis>
+
+<product_requirements>
+The user aims to launch a staking platform for their PLUGU token (contract: ) on plugumons.com, distributing rewards from wallet .
+Key features include:
+- Re-enabling the Energy Grid button to .
+- Direct wallet connection for Phantom, Solflare, and Backpack users.
+- Three locked staking options for non-NFT holders: 30-day (5% APR), 90-day (10% APR), 365-day (20% APR).
+- NFT holder benefits (token address: ):
+    - No locked staking; unstake anytime.
+    - x2 APR multiplier at halfway mark (e.g., 30-day at 10% APR, 90-day at 20% APR, 365-day at 40% APR).
+- Accurate reward calculator.
+- Removal of hypothetical frontend data, replaced with real-time tracking for total staked, user's stake, active stakers, user's power stations, and overall power grid percentage.
+- Power grid: Reaches 100% at 200,000,000 PLUGU tokens staked. Once 100%, all APRs double for both NFT/non-NFT holders.
+- Functional Claim Rewards, Unstake, and Start Staking buttons.
+- Top Power Plants section: Displays top 5 addresses by PLUGU rewards, with amounts, replacing placeholders.
+- A Docs button linking to an informative modal explaining staking rules, APRs for NFT/non-NFT holders, grid power, etc.
+- The user initially received a custodial staking solution but explicitly requested a non-custodial smart contract system.
+</product_requirements>
+
+<key_technical_concepts>
+- **Solana Blockchain:** Underlying network for token/NFT operations.
+- **Anchor Framework:** Solana's standard for building smart contracts (programs).
+- **Node.js/Express:** Backend framework for API endpoints.
+- **SQLite:** Database for managing staking data.
+- **HTML/CSS/JavaScript:** Frontend development.
+- **Solana Web3.js:** Frontend interaction with Solana.
+- **Phantom/Solflare/Backpack:** Solana wallets for transaction signing.
+- **Render:** Cloud platform for application deployment.
+- **GoDaddy:** Domain registrar for DNS management.
+- **SPL Token Standard:** Solana's token standard (PLUGU).
+</key_technical_concepts>
+
+<code_architecture>
+
+
+
+-   
+    -   **Summary of why important:** The main landing page of the application, containing the Access The Energy Grid button.
+    -   **Summary of changes:** The button's  was updated to  to direct users to the staking platform on the new subdomain.
+-   
+    -   **Summary of why important:** This is the core frontend page for the staking application, displaying all staking information, reward calculator, and wallet connection.
+    -   **Summary of changes:** Extensive modifications were made:
+        -   Enabled access via a working button.
+        -   Integrated Solana wallet connections (Phantom, Solflare, Backpack) with dynamic UI updates.
+        -   Implemented API calls to the backend for fetching stats, creating stakes, claiming rewards, and unstaking.
+        -   Removed placeholder data and integrated real-time values for total staked, active stakers, user's stake, and grid power.
+        -   Added a Docs button and modal for staking information.
+        -   Updated the reward calculator to differentiate APRs for NFT and non-NFT holders.
+        -   Refactored  function to initiate actual Solana token transfers and transaction signing.
+        -   Improved error handling and removed excessive  popups.
+        -   Added  polyfill to resolve browser compatibility issues for transaction deserialization.
+-   
+    -   **Summary of why important:** The FastAPI backend server, handling API requests and interacting with the database and Solana services.
+    -   **Summary of changes:**
+        -   Added API endpoints for , , , , , , .
+        -   Integrated  and .
+        -   Implemented CORS to allow requests from the frontend domain.
+        -   Modified  endpoint to accept a signed Solana transaction from the frontend for verification.
+        -   Enabled or disabled (commented out)  based on user's manual vs. automatic reward distribution preference.
+-   
+    -   **Summary of why important:** Manages the SQLite database, storing all staking-related data such as user stakes, lock periods, and rewards.
+    -   **Summary of changes:** Created to establish SQLite connection and define schema for  and  tables. Handles CRUD operations for staking data.
+-   
+    -   **Summary of why important:** Provides core Solana integration, including token transfers and (initially) NFT verification. It handles interactions with the Solana RPC.
+    -   **Summary of changes:** Created to encapsulate Solana-related logic, specifically for sending SPL tokens, verifying transaction signatures, and potentially querying NFT ownership. Uses  and a designated reward wallet private key from .
+-   
+    -   **Summary of why important:** Contains the business logic for staking, including reward calculations, determining unlock conditions, and managing stake states.
+    -   **Summary of changes:** Created to implement the detailed staking rules (lock periods, APRs, NFT multipliers, grid boost, half-way bonuses) and interact with the database.
+-    and 
+    -   **Summary of why important:** Stores sensitive configuration, notably  endpoint and , ensuring they are not hardcoded or committed to version control.
+    -   **Summary of changes:** Created  as a template.  was created and populated with  and the provided .
+-   
+    -   **Summary of why important:** This directory is intended to house the Solana smart contract (Anchor program) that the user wants to deploy for non-custodial staking.
+    -   **Summary of changes:** Initial structure created, including , , and . The user identified a structural issue, indicating  might be misplaced or missing from the  program's root directory.
+-    and 
+    -   **Summary of why important:** Manages Node.js dependencies for the backend and frontend, and defines scripts.
+    -   **Summary of changes:** Updated to include necessary packages for the Express backend and other utilities.
+
+</code_architecture>
+
+<pending_tasks>
+-   **Complete Solana Smart Contract Structure:** The  directory needs its internal structure finalized (e.g., ensuring  is in the correct  program root) for building with Anchor.
+-   **Implement Smart Contract Logic:** Write the full Rust code for the  Anchor program, incorporating all staking rules (lock periods, APRs, NFT benefits, grid power, etc.).
+-   **Deploy Smart Contract:** Deploy the compiled Solana program to devnet, then mainnet.
+-   **Integrate Frontend with Smart Contract:** Update  and associated JavaScript to interact directly with the deployed Solana program instead of the current Express backend for staking actions.
+-   **Update Homepage Button Link on GitHub:** The button on the GitHub Pages homepage needs to point to .
+</pending_tasks>
+
+<current_work>
+Immediately before this summary request, the AI engineer was in the process of building a Solana smart contract (Anchor program) as requested by the user, moving away from the previously implemented custodial staking system. The AI had created the initial directory  along with several foundational files: ,  (at the root of ), and .
+
+However, the user identified a critical issue with the generated structure, stating: plugumons-staking folder does not have a Cargo.toml file — Anchor requires it to build and deploy the program. Right now you only have the src folder. This indicates that while a  exists at the top-level  directory, the specific Anchor program within  is missing its own , which is necessary for Anchor to correctly identify and build the program. The AI acknowledged this, stating it would fix the proper Anchor project structure.
+</current_work>
+
+<optional_next_step>
+Fix the Solana Anchor project structure within .
+</optional_next_step>
+
