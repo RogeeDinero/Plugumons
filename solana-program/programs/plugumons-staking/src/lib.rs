@@ -84,7 +84,7 @@ pub mod plugumons_staking {
         
         // Verify the NFT mint address matches the required collection
         require!(
-            nft_mint.key() == Pubkey::from_str("4Qy6grGLpMBk2q13tPt32UkCzahWCSLEBLbRvHoyBcTvHCZYket").unwrap(),
+            nft_mint.key() == SolanaPubkey::from_str("4Qy6grGLpMBk2q13tPt32UkCzahWCSLEBLbRvHoyBcTvHCZYket").unwrap(),
             StakingError::InvalidNftMint
         );
         
