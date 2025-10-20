@@ -38,3 +38,7 @@ deploy/
 # Database
 *.db
 *.sqlite
+-e 
+# Environment files
+*.env
+*.env.*
