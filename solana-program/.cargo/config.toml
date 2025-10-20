@@ -1,9 +1,2 @@
-[build]
-rustflags = []
-
 [net]
 git-fetch-with-cli = true
-
-[unstable]
-# Force Cargo to use lockfile version 3 instead of 4
-resolver = "2"
