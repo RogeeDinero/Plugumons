@@ -1,0 +1,19 @@
+# Anchor
+.anchor
+target/
+deploy/
+test-ledger/
+
+# Rust
+Cargo.lock
+**/*.rs.bk
+
+# IDL
+*.so
+
+# Node
+node_modules/
+.DS_Store
+
+# Environment
+.env
