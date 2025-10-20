@@ -217,18 +217,19 @@ pub mod plugumons_staking {
         }
 
         let amount = stake_account.amount;
+        let bump = staking_pool.bump;
 
         // Transfer staked tokens back to user
         let seeds: &[&[u8]] = &[
             b"staking_pool",
-            &[staking_pool.bump],
+            &[bump],
         ];
         let signer = &[seeds];
 
         let cpi_accounts = Transfer {
             from: ctx.accounts.pool_token_account.to_account_info(),
             to: ctx.accounts.user_token_account.to_account_info(),
-            authority: ctx.accounts.staking_pool.to_account_info(),
+            authority: staking_pool.to_account_info(),
         };
         let cpi_program = ctx.accounts.token_program.to_account_info();
         let cpi_ctx = CpiContext::new_with_signer(cpi_program, cpi_accounts, signer);
