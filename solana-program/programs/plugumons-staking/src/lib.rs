@@ -219,11 +219,11 @@ pub mod plugumons_staking {
         let amount = stake_account.amount;
 
         // Transfer staked tokens back to user
-        let seeds = &[
+        let seeds: &[&[u8]] = &[
             b"staking_pool",
             &[staking_pool.bump],
         ];
-        let signer = &[&seeds[..]];
+        let signer = &[seeds];
 
         let cpi_accounts = Transfer {
             from: ctx.accounts.pool_token_account.to_account_info(),
