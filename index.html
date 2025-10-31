@@ -11,6 +11,7 @@
       height: 100%;
       margin: 0;
       padding: 0;
+      overflow-x: hidden;
     }
 
     body {
@@ -21,26 +22,22 @@
       display: flex;
       flex-direction: column;
       align-items: center;
-      position: relative;
-      overflow-x: hidden;
       min-height: 100vh;
     }
 
     h1 {
-      font-size: 4rem;
+      font-size: 3rem;
       margin: 0.5em 0;
       text-shadow: 0px 3px 8px rgba(0, 0, 0, 0.3);
-      z-index: 1;
     }
 
     h2 {
-      font-size: 1.6rem;
-      max-width: 700px;
+      font-size: 1.3rem;
+      max-width: 90%;
       color: #fff;
       font-weight: 400;
       margin: 0.5em auto;
       line-height: 1.5;
-      z-index: 1;
     }
 
     .mint-info {
@@ -48,15 +45,16 @@
       background: rgba(255, 235, 59, 0.1);
       border: 2px solid #ffeb3b;
       border-radius: 16px;
-      padding: 20px 40px;
+      padding: 20px;
       display: inline-block;
       color: #fff;
       box-shadow: 0px 0px 20px rgba(255, 235, 59, 0.2);
-      z-index: 1;
+      max-width: 90%;
+      word-wrap: break-word;
     }
 
     .mint-info p {
-      font-size: 1.2rem;
+      font-size: 1rem;
       margin: 0;
     }
 
@@ -66,17 +64,15 @@
       font-weight: 700;
       border: none;
       border-radius: 50px;
-      padding: 15px 40px;
-      margin-top: 2em;
-      font-size: 1.2rem;
+      padding: 12px 25px;
+      margin: 10px;
+      font-size: 1rem;
       cursor: pointer;
       transition: 0.2s ease;
       text-decoration: none;
       display: inline-block;
-      position: relative;
       box-shadow: 0 0 20px 4px #00ff99;
       animation: pulse 2s infinite;
-      z-index: 1;
     }
 
     @keyframes pulse {
@@ -97,7 +93,8 @@
       margin-top: 15px;
       box-shadow: 0 0 20px 4px #ffeb3b;
       animation: yellowGlow 2s infinite;
-      z-index: 1;
+      width: 90%;
+      max-width: 450px;
     }
 
     @keyframes yellowGlow {
@@ -109,16 +106,21 @@
     iframe {
       border: none;
       border-radius: 8px;
+      width: 100%;
+      height: 600px;
     }
 
     .exchange-text {
       color: #fff;
-      font-size: 1.3rem;
+      font-size: 1.1rem;
       margin-top: 40px;
-      margin-bottom: 10px;
+      margin-bottom: 20px;
       text-shadow: 0px 0px 10px rgba(255,255,255,0.6);
       animation: textPulse 3s infinite;
-      z-index: 1;
+      padding: 0 15px;
+      max-width: 95%;
+      word-wrap: break-word;
+      text-align: left;
     }
 
     @keyframes textPulse {
@@ -129,14 +131,13 @@
 
     footer {
       margin-top: auto;
-      padding: 20px 0;
+      padding: 20px 10px;
       font-size: 0.9rem;
       color: #fff;
       opacity: 0.8;
       width: 100%;
       text-align: center;
       background: rgba(0, 0, 0, 0.1);
-      z-index: 1;
     }
 
     .lightning {
@@ -148,16 +149,10 @@
     }
 
     @keyframes floatLightning {
-      0% {
-        transform: translateY(100vh) rotate(0deg);
-        opacity: 0;
-      }
+      0% { transform: translateY(100vh) rotate(0deg); opacity: 0; }
       10% { opacity: 0.8; }
       50% { opacity: 1; }
-      100% {
-        transform: translateY(-10vh) rotate(360deg);
-        opacity: 0;
-      }
+      100% { transform: translateY(-10vh) rotate(360deg); opacity: 0; }
     }
 
     @keyframes flicker {
@@ -177,14 +172,13 @@
       right: 20px;
       display: flex;
       gap: 10px;
-      z-index: 2;
     }
 
     .top-links a {
       background: rgba(255, 235, 59, 0.2);
       border: 2px solid #ffeb3b;
       color: #ffe102;
-      padding: 10px 20px;
+      padding: 8px 15px;
       border-radius: 12px;
       text-decoration: none;
       font-weight: 700;
@@ -200,18 +194,51 @@
       position: absolute;
       top: 20px;
       left: 20px;
-      z-index: 2;
-      width: 107px;
-      height: 107px;
+      width: 80px;
+      height: 80px;
       border-radius: 50%;
       box-shadow: 0 0 20px 4px #00ff99;
       animation: pulse 2s infinite;
       cursor: pointer;
-      transition: transform 0.2s;
     }
 
-    .top-logo:hover {
-      transform: scale(1.05);
+    /* --- Contract Section --- */
+    .contract-container {
+      text-align: center;
+      font-family: Arial, sans-serif;
+      margin-top: 10px;
+    }
+
+    .contract-label {
+      font-size: 14px;
+      font-weight: bold;
+      margin-bottom: 4px;
+    }
+
+    .contract-address {
+      font-size: 12px;
+      color: #000;
+      background-color: #ffeb3b;
+      display: inline-block;
+      padding: 6px 10px;
+      border-radius: 6px;
+      cursor: pointer;
+      user-select: all;
+      transition: background 0.2s, transform 0.1s;
+    }
+
+    .contract-address:hover {
+      background-color: #fdd835;
+      transform: scale(1.03);
+    }
+
+    /* --- Mobile tweaks --- */
+    @media (max-width: 600px) {
+      h1 { font-size: 2rem; }
+      h2 { font-size: 1rem; }
+      .exchange-text { font-size: 1rem; text-align: left; }
+      .button { font-size: 0.9rem; padding: 10px 20px; }
+      .iframe-container { padding: 5px; }
     }
   </style>
 </head>
@@ -227,119 +254,57 @@
 
   <h1>⚡ Plugumons</h1>
   <h2>The cutest electric creatures charging up the blockchain.<br>Catch one before they short-circuit!</h2>
-  <style>
-  .contract-container {
-    text-align: center;
-    font-family: Arial, sans-serif;
-  }
 
-  .contract-label {
-    font-size: 14px;
-    font-weight: bold;
-    margin-bottom: 4px;
-  }
+  <div class="contract-container">
+    <div class="contract-label">CA:</div>
+    <div class="contract-address" onclick="copyCA()">12EU3xpACKJEZoSZgQUGnv1NgFucRNDdJaPgwuicpump</div>
+  </div>
 
-  .contract-address {
-    font-size: 12px;
-    color: #333;
-    background-color: #f4f4f4;
-    display: inline-block;
-    padding: 4px 8px;
-    border-radius: 6px;
-    cursor: pointer;
-    user-select: all;
-    transition: background 0.2s;
-  }
-
-  .contract-address:hover {
-    background-color: #e0e0e0;
-  }
-<style>
-  .contract-container {
-    text-align: center;
-    font-family: Arial, sans-serif;
-  }
-
-  .contract-label {
-    font-size: 14px;
-    font-weight: bold;
-    margin-bottom: 4px;
-  }
-
-  .contract-address {
-    font-size: 12px;
-    color: #000;
-    background-color: #ffeb3b; /* bright yellow */
-    display: inline-block;
-    padding: 6px 10px;
-    border-radius: 6px;
-    cursor: pointer;
-    user-select: all;
-    transition: background 0.2s, transform 0.1s;
-  }
-
-  .contract-address:hover {
-    background-color: #fdd835; /* slightly darker yellow */
-    transform: scale(1.03);
-  }
-</style>
-
-<div class="contract-container">
-  <div class="contract-label">CA:</div>
-  <div class="contract-address" onclick="copyCA()">12EU3xpACKJEZoSZgQUGnv1NgFucRNDdJaPgwuicpump</div>
-</div>
-
-<script>
-  function copyCA() {
-    const text = "12EU3xpACKJEZoSZgQUGnv1NgFucRNDdJaPgwuicpump";
-    navigator.clipboard.writeText(text);
-    alert("Contract address copied!");
-  }
-</script>
-
-
+  <script>
+    function copyCA() {
+      const text = "12EU3xpACKJEZoSZgQUGnv1NgFucRNDdJaPgwuicpump";
+      navigator.clipboard.writeText(text);
+      alert("Contract address copied!");
+    }
+  </script>
 
   <div class="mint-info">
     <p>1M $PLUGU = 1 Plugumon NFT ⚡</p>
     <p>Total NFT Supply: 1,000 Mints</p>
   </div>
-<div class="button-container">
-    <!-- Disabled Energy Grid button -->
-    <a href="#" class="button disabled">⚡ Energy Grid Coming Soon...</a>
 
-    <!-- Disabled Mystery Box button -->
+  <div class="button-container">
+    <a href="#" class="button disabled">⚡ Energy Grid Coming Soon...</a>
     <a href="#" class="button disabled">🎁 Mystery Box Coming Soon...</a>
-    
-    <!-- Disabled Mystery Box button -->
     <a href="node-map.html" class="button">⚡ Node Map BETA</a>
   </div>
+
   <div class="exchange-text">
-  Exchange $PLUGU tokens for Plugumon NFTs below and get plugged in! <br><br>
+    Exchange $PLUGU tokens for Plugumon NFTs below and get plugged in! <br><br>
+    <strong>HOW IT WORKS:</strong><br>
+    Connect your wallet to use toast.fun below.<br>
+    While Plugumons are still mintable, you will have the opportunity to mint one!<br>
+    Thanks to Toast, our community can instantly bridge between their $PLUGU and Plugumon NFTs.<br><br>
 
-  <strong>HOW IT WORKS:</strong><br>
-  Connect your wallet to use toast.fun below.<br>
-  While Plugumons are still mintable, you will have the opportunity to mint one!<br>
-  Thanks to Toast, our community can instantly bridge between their $PLUGU and Plugumon NFTs.<br><br>
+    <strong>WHAT DOES THIS MEAN?:</strong><br>
+    This basically means Plugumon NFTs are liquid!<br>
+    The bridge allows for seamless conversion between $PLUGU and Plugumons.<br><br>
 
-  <strong>WHAT DOES THIS MEAN?:</strong><br>
-  This basically means Plugumon NFTs are liquid!<br>
-  The bridge allows for seamless conversion between $PLUGU and Plugumons.<br><br>
+    <strong>TOKEN TO NFT ></strong> When a user wants an NFT those NFTs are pulled from the bridge pool—minted fresh from the pool.<br>
+    <strong>NFT TO TOKEN ></strong> NFT goes into the bridge pool for others to claim in the future — The user receives tokens instantly in their wallet!<br>
+    <strong>POOL WALLET ADDRESS ></strong> Wallet address that appears on holders list: 
+    <strong>5JwfSFgfGyPyNryEQfAaY8izfqsYfz2L6Xb4dH4LG5eQ</strong>
+  </div>
 
-  <strong>TOKEN TO NFT ></strong> When a user wants an NFT those NFTs are pulled from the bridge pool-minted fresh from the pool.<br>
-  <strong>NFT TO TOKEN ></strong> NFT goes into the bridge pool for others to claim in the future — The user receives tokens instantly in their wallet!<br>
-  <strong>POOL WALLET ADDRESS></strong> Wallet address that appears on holders list: <strong>5JwfSFgfGyPyNryEQfAaY8izfqsYfz2L6Xb4dH4LG5eQ</strong>
-</div>
-
-
-<div class="iframe-container">
+  <div class="iframe-container">
     <iframe
       src="https://www.toast.fun/embed/bridge/12EU3xpACKJEZoSZgQUGnv1NgFucRNDdJaPgwuicpump"
-      width="450"
-      height="600"
       title="toast.fun Bridge"></iframe>
   </div>
 
-  <footer>Official Contact Email: Plugumons@gmail.com | © 2025 Plugumons. All rights reserved.</footer>
+  <footer>
+    Official Contact Email: Plugumons@gmail.com | © 2025 Plugumons. All rights reserved.
+  </footer>
 
   <div class="lightning" style="left:10%; animation-delay: 0s;">⚡</div>
   <div class="lightning" style="left:30%; animation-delay: 2s;">⚡</div>
