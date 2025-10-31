@@ -1,0 +1,227 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Plugumons Live Adventure Map ⚡</title>
+<style>
+  body {
+    margin: 0;
+    overflow: hidden;
+    background: radial-gradient(circle at center, #001f3f 0%, #000 100%);
+    font-family: 'Orbitron', sans-serif;
+    color: #00ffcc;
+  }
+  #stats {
+    position: absolute;
+    top: 20px;
+    left: 20px;
+    background: rgba(0, 0, 0, 0.6);
+    border: 1px solid #00ffcc;
+    border-radius: 10px;
+    padding: 15px 20px;
+    box-shadow: 0 0 15px #00ffcc;
+    font-size: 1.1rem;
+    line-height: 1.6;
+    z-index: 5;
+  }
+  #stats h2 {
+    margin: 0 0 10px 0;
+    color: #00ffee;
+    text-shadow: 0 0 10px #00ffee;
+  }
+  canvas {
+    display: block;
+  }
+
+  /* Back button styling */
+  .back-btn {
+    position: absolute;
+    top: 20px;
+    right: 20px;
+    background: rgba(0, 255, 204, 0.15);
+    border: 2px solid #00ffcc;
+    color: #00ffee;
+    padding: 10px 20px;
+    border-radius: 10px;
+    text-decoration: none;
+    font-weight: bold;
+    font-size: 1rem;
+    transition: 0.3s;
+    box-shadow: 0 0 10px #00ffcc;
+    z-index: 10;
+  }
+  .back-btn:hover {
+    background: rgba(0, 255, 204, 0.4);
+    transform: scale(1.05);
+    box-shadow: 0 0 20px #00ffee;
+  }
+</style>
+</head>
+<body>
+  <div id="stats">
+    <h2>⚡ Energy Grid Status</h2>
+    <div>Power: <span id="power">128,742</span></div>
+    <div>Active Plugumons: <span id="plugumons">143</span></div>
+    <div>Stability: <span id="stability">97.8%</span></div>
+  </div>
+
+  <!-- Back to Home Button -->
+  <a href="index.html" class="back-btn">← Back to Home</a>
+
+  <canvas id="grid"></canvas>
+
+  <script>
+    const canvas = document.getElementById("grid");
+    const ctx = canvas.getContext("2d");
+    canvas.width = window.innerWidth;
+    canvas.height = window.innerHeight;
+
+    const plugumonNames = ["Voltchu", "Zapling", "Gridra", "Ampuff", "Shocku", "Lumino", "Chargon", "Flarebit", "Neonox", "Plasmite"];
+    const nodes = [];
+
+    for (let i = 0; i < 90; i++) {
+      const name = plugumonNames[Math.floor(Math.random() * plugumonNames.length)];
+      nodes.push({
+        x: Math.random() * canvas.width,
+        y: Math.random() * canvas.height,
+        radius: 3 + Math.random() * 3,
+        speedX: (Math.random() - 0.5) * 0.6,
+        speedY: (Math.random() - 0.5) * 0.6,
+        name: name,
+        glow: 0
+      });
+    }
+
+    function drawNodes() {
+      nodes.forEach(node => {
+        ctx.beginPath();
+        ctx.arc(node.x, node.y, node.radius + node.glow * 0.3, 0, Math.PI * 2);
+        const glowStrength = 15 + node.glow * 10;
+        ctx.fillStyle = "#00ffcc";
+        ctx.shadowBlur = glowStrength;
+        ctx.shadowColor = node.glow > 0 ? "#00ffff" : "#00ffcc";
+        ctx.fill();
+      });
+    }
+
+    function connectNodes() {
+      for (let i = 0; i < nodes.length; i++) {
+        for (let j = i + 1; j < nodes.length; j++) {
+          const dx = nodes[i].x - nodes[j].x;
+          const dy = nodes[i].y - nodes[j].y;
+          const dist = Math.sqrt(dx * dx + dy * dy);
+          if (dist < 150) {
+            ctx.beginPath();
+            ctx.moveTo(nodes[i].x, nodes[i].y);
+            ctx.lineTo(nodes[j].x, nodes[j].y);
+            ctx.strokeStyle = "rgba(0, 255, 204," + (1 - dist / 150) + ")";
+            ctx.lineWidth = 0.5;
+            ctx.stroke();
+          }
+        }
+      }
+    }
+
+    function animate() {
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+      nodes.forEach(node => {
+        node.x += node.speedX;
+        node.y += node.speedY;
+        if (node.glow > 0) node.glow -= 0.1;
+
+        if (node.x < 0 || node.x > canvas.width) node.speedX *= -1;
+        if (node.y < 0 || node.y > canvas.height) node.speedY *= -1;
+      });
+      connectNodes();
+      drawNodes();
+      requestAnimationFrame(animate);
+    }
+
+    animate();
+
+    // Tooltip
+    const tooltip = document.createElement("div");
+    tooltip.style.position = "absolute";
+    tooltip.style.padding = "6px 10px";
+    tooltip.style.background = "rgba(0, 0, 0, 0.8)";
+    tooltip.style.border = "1px solid #00ff99";
+    tooltip.style.borderRadius = "8px";
+    tooltip.style.color = "#fff";
+    tooltip.style.fontSize = "0.9rem";
+    tooltip.style.pointerEvents = "none";
+    tooltip.style.display = "none";
+    tooltip.style.zIndex = "10";
+    document.body.appendChild(tooltip);
+
+    canvas.addEventListener("mousemove", (e) => {
+      let hoverNode = null;
+      nodes.forEach(node => {
+        const dx = e.clientX - node.x;
+        const dy = e.clientY - node.y;
+        if (Math.sqrt(dx * dx + dy * dy) < 10) hoverNode = node;
+      });
+
+      if (hoverNode) {
+        tooltip.style.left = e.clientX + 10 + "px";
+        tooltip.style.top = e.clientY + 10 + "px";
+        tooltip.innerHTML = `<strong>${hoverNode.name}</strong><br>Power: ${(100 + Math.random()*200).toFixed(1)} ⚡`;
+        tooltip.style.display = "block";
+      } else {
+        tooltip.style.display = "none";
+      }
+    });
+
+    // Click “power up” effect
+    canvas.addEventListener("click", (e) => {
+      nodes.forEach(node => {
+        const dx = e.clientX - node.x;
+        const dy = e.clientY - node.y;
+        if (Math.sqrt(dx * dx + dy * dy) < 10) {
+          node.glow = 10;
+
+          // Lightning flash
+          const flash = document.createElement("div");
+          flash.style.position = "fixed";
+          flash.style.left = "0";
+          flash.style.top = "0";
+          flash.style.width = "100%";
+          flash.style.height = "100%";
+          flash.style.background = "rgba(0, 255, 255, 0.15)";
+          flash.style.pointerEvents = "none";
+          flash.style.transition = "opacity 0.3s ease-out";
+          flash.style.opacity = "1";
+          document.body.appendChild(flash);
+          setTimeout(() => { flash.style.opacity = "0"; }, 50);
+          setTimeout(() => { flash.remove(); }, 300);
+        }
+      });
+    });
+
+    // Dynamic stat updates
+    setInterval(() => {
+      const power = document.getElementById("power");
+      const plugumons = document.getElementById("plugumons");
+      const stability = document.getElementById("stability");
+
+      power.textContent = (128000 + Math.floor(Math.random() * 800)).toLocaleString();
+      plugumons.textContent = 140 + Math.floor(Math.random() * 5);
+      stability.textContent = (95 + Math.random() * 5).toFixed(1) + "%";
+    }, 3000);
+
+    // Energy Surge animation
+    setInterval(() => {
+      document.body.style.background = "radial-gradient(circle at center, #00ffcc 0%, #001f3f 100%)";
+      setTimeout(() => {
+        document.body.style.background = "radial-gradient(circle at center, #001f3f 0%, #000 100%)";
+      }, 1000);
+    }, 30000);
+
+    // Responsive
+    window.addEventListener("resize", () => {
+      canvas.width = window.innerWidth;
+      canvas.height = window.innerHeight;
+    });
+  </script>
+</body>
+</html>
