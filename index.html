@@ -9,14 +9,14 @@
 
     /* ----------------- Prevent Scrollbar Twitch ----------------- */
     html {
-      overflow-y: scroll;
+      overflow-y: scroll; /* always reserve vertical scrollbar */
       scrollbar-gutter: stable both-edges;
     }
     body {
       height: 100%;
       margin: 0;
       padding: 0;
-      overflow: hidden;
+      overflow: hidden; /* prevent layout shifts */
       font-family: 'Rubik', sans-serif;
       background: linear-gradient(135deg, #007bff 0%, #00c3ff 100%);
       color: #ffeb3b;
@@ -94,8 +94,8 @@
       animation: yellowGlow 2s infinite;
       width: 90%;
       max-width: 450px;
-      height: 620px;
-      overflow: hidden;
+      height: 620px; /* fix height to prevent resize */
+      overflow: hidden; /* contain iframe */
     }
 
     @keyframes yellowGlow {
@@ -212,18 +212,23 @@
       position: absolute;
       color: #ffeb3b;
       font-size: 2rem;
-      line-height: 0;       /* remove yellow box around emoji */
-      background: none;     /* remove background hue */
-      text-shadow: 0 0 5px #fff, 0 0 20px #ffeb3b, 0 0 40px #ffeb3b;
-      animation: flicker 3s infinite;
+      opacity: 0.7;
+      animation: floatLightning 6s linear infinite, flicker 3s infinite;
       contain: layout paint;
       will-change: transform, opacity;
+    }
+    @keyframes floatLightning {
+      0% { transform: translateY(110vh) rotate(0deg); opacity: 0; }
+      10% { opacity: 0.8; }
+      50% { opacity: 1; }
+      100% { transform: translateY(-10vh) rotate(360deg); opacity: 0; }
     }
     @keyframes flicker {
       0%, 18%, 22%, 25%, 53%, 57%, 100% {
         opacity: 1;
+        text-shadow: 0 0 5px #fff, 0 0 20px #ffeb3b, 0 0 40px #ffeb3b;
       }
-      20%, 24%, 55% { opacity: 0.2; }
+      20%, 24%, 55% { opacity: 0.2; text-shadow: none; }
     }
 
     @media (max-width: 600px) {
@@ -258,39 +263,6 @@
     function copyCA() {
       navigator.clipboard.writeText("12EU3xpACKJEZoSZgQUGnv1NgFucRNDdJaPgwuicpump");
       alert("Contract address copied!");
-    }
-
-    // ---------------- Lightning Random Animation ----------------
-    const lightningCount = 15;
-    const wrapper = document.createElement('div');
-    wrapper.className = 'lightning-wrapper';
-    document.body.appendChild(wrapper);
-
-    for (let i = 0; i < lightningCount; i++) {
-      const l = document.createElement('div');
-      l.className = 'lightning';
-      l.textContent = '⚡';
-      wrapper.appendChild(l);
-
-      function animate() {
-        const size = 14 + Math.random() * 20;
-        const left = Math.random() * 100;
-        const duration = 6 + Math.random() * 2; // slower 6-8 seconds
-        const topStart = 100 + Math.random() * 20;
-        const topEnd = -10 - Math.random() * 10;
-
-        l.style.fontSize = size + 'px';
-        l.style.left = left + 'vw';
-        l.style.top = topStart + 'vh';
-        l.style.opacity = Math.random() * 0.5 + 0.5;
-
-        l.animate([
-          { transform: `translateY(0vh)` },
-          { transform: `translateY(${topEnd - topStart}vh)` }
-        ], { duration: duration * 1000, easing: 'linear' }).onfinish = animate;
-      }
-
-      animate();
     }
   </script>
 
@@ -327,5 +299,13 @@
   <footer>
     Official Contact Email: Plugumons@gmail.com | © 2025 Plugumons. All rights reserved.
   </footer>
+
+  <div class="lightning-wrapper">
+    <div class="lightning" style="left:10%; animation-delay:0s;">⚡</div>
+    <div class="lightning" style="left:30%; animation-delay:2s;">⚡</div>
+    <div class="lightning" style="left:50%; animation-delay:3s;">⚡</div>
+    <div class="lightning" style="left:60%; animation-delay:4s;">⚡</div>
+    <div class="lightning" style="left:80%; animation-delay:1s;">⚡</div>
+  </div>
 </body>
 </html>
