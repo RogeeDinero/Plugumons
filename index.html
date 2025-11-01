@@ -94,8 +94,8 @@
       animation: yellowGlow 2s infinite;
       width: 90%;
       max-width: 450px;
-      height: 620px; 
-      overflow: hidden;
+      height: 620px; /* fix height to prevent resize */
+      overflow: hidden; /* contain iframe */
     }
 
     @keyframes yellowGlow {
@@ -207,20 +207,15 @@
       overflow: hidden;
       pointer-events: none;
       z-index: 0;
-      background: transparent; /* ensure no white background appears */
     }
     .lightning {
       position: absolute;
-      display: block;        /* block fixes inline white rectangle */
-      background: transparent; 
-      line-height: 0;        /* remove extra line height */
       color: #ffeb3b;
       font-size: 2rem;
       opacity: 0.7;
-      animation: floatLightning 7s linear infinite, flicker 3s infinite; /* slightly slower */
+      animation: floatLightning 6s linear infinite, flicker 3s infinite;
       contain: layout paint;
       will-change: transform, opacity;
-      text-shadow: 0 0 5px #fff, 0 0 20px #ffeb3b, 0 0 40px #ffeb3b;
     }
     @keyframes floatLightning {
       0% { transform: translateY(110vh) rotate(0deg); opacity: 0; }
@@ -229,7 +224,10 @@
       100% { transform: translateY(-10vh) rotate(360deg); opacity: 0; }
     }
     @keyframes flicker {
-      0%, 18%, 22%, 25%, 53%, 57%, 100% { opacity: 1; }
+      0%, 18%, 22%, 25%, 53%, 57%, 100% {
+        opacity: 1;
+        text-shadow: 0 0 5px #fff, 0 0 20px #ffeb3b, 0 0 40px #ffeb3b;
+      }
       20%, 24%, 55% { opacity: 0.2; text-shadow: none; }
     }
 
