@@ -7,16 +7,16 @@
   <style>
     @import url('https://fonts.googleapis.com/css2?family=Rubik:wght@400;700&display=swap');
 
-    /* --- Core Reset and Stability --- */
-    html, body {
+    /* ----------------- Prevent Scrollbar Twitch ----------------- */
+    html {
+      overflow-y: scroll;
+      scrollbar-gutter: stable both-edges;
+    }
+    body {
       height: 100%;
       margin: 0;
       padding: 0;
-      overflow-x: hidden;
-      overflow-y: scroll; /* keeps scrollbar width consistent */
-    }
-
-    body {
+      overflow: hidden;
       font-family: 'Rubik', sans-serif;
       background: linear-gradient(135deg, #007bff 0%, #00c3ff 100%);
       color: #ffeb3b;
@@ -27,18 +27,13 @@
       min-height: 100vh;
       position: relative;
     }
-
-    * {
-      box-sizing: border-box;
-      max-width: 100%;
-    }
+    * { box-sizing: border-box; max-width: 100%; }
 
     h1 {
       font-size: 3rem;
       margin: 0.5em 0;
       text-shadow: 0px 3px 8px rgba(0, 0, 0, 0.3);
     }
-
     h2 {
       font-size: 1.3rem;
       max-width: 90%;
@@ -99,6 +94,7 @@
       animation: yellowGlow 2s infinite;
       width: 90%;
       max-width: 450px;
+      height: 620px;
       overflow: hidden;
     }
 
@@ -112,7 +108,7 @@
       border: none;
       border-radius: 8px;
       width: 100%;
-      height: 600px;
+      height: 100%;
       display: block;
     }
 
@@ -146,7 +142,6 @@
       background: rgba(0, 0, 0, 0.1);
     }
 
-    /* --- Top Links and Logo --- */
     .top-links {
       position: absolute;
       top: 20px;
@@ -185,19 +180,12 @@
       z-index: 10;
     }
 
-    /* --- Contract Section --- */
     .contract-container {
       text-align: center;
       font-family: Arial, sans-serif;
       margin-top: 10px;
     }
-
-    .contract-label {
-      font-size: 14px;
-      font-weight: bold;
-      margin-bottom: 4px;
-    }
-
+    .contract-label { font-size: 14px; font-weight: bold; margin-bottom: 4px; }
     .contract-address {
       font-size: 12px;
       color: #000;
@@ -210,58 +198,39 @@
       transition: background 0.2s, transform 0.1s;
       word-break: break-all;
     }
+    .contract-address:hover { background-color: #fdd835; transform: scale(1.03); }
 
-    .contract-address:hover {
-      background-color: #fdd835;
-      transform: scale(1.03);
-    }
-
-    /* --- Lightning Animation Wrapper --- */
+    /* ---------------- Lightning Animation ---------------- */
     .lightning-wrapper {
       position: fixed;
-      top: 0;
-      left: 0;
-      width: 100vw;
-      height: 100vh;
+      inset: 0;
       overflow: hidden;
       pointer-events: none;
       z-index: 0;
     }
-
     .lightning {
       position: absolute;
       color: #ffeb3b;
       font-size: 2rem;
       opacity: 0.7;
-      animation: floatLightning 6s linear infinite, flicker 3s infinite;
+      animation: flicker 3s infinite;
+      contain: layout paint;
       will-change: transform, opacity;
     }
-
-    @keyframes floatLightning {
-      0% { transform: translateY(110vh) rotate(0deg); opacity: 0; }
-      10% { opacity: 0.8; }
-      50% { opacity: 1; }
-      100% { transform: translateY(-10vh) rotate(360deg); opacity: 0; }
-    }
-
     @keyframes flicker {
       0%, 18%, 22%, 25%, 53%, 57%, 100% {
         opacity: 1;
         text-shadow: 0 0 5px #fff, 0 0 20px #ffeb3b, 0 0 40px #ffeb3b;
       }
-      20%, 24%, 55% {
-        opacity: 0.2;
-        text-shadow: none;
-      }
+      20%, 24%, 55% { opacity: 0.2; text-shadow: none; }
     }
 
-    /* --- Mobile tweaks --- */
     @media (max-width: 600px) {
       h1 { font-size: 2rem; }
       h2 { font-size: 1rem; }
       .exchange-text { font-size: 1rem; text-align: left; }
       .button { font-size: 0.9rem; padding: 10px 20px; }
-      .iframe-container { padding: 5px; }
+      .iframe-container { padding: 5px; height: 500px; }
       .top-logo { width: 60px; height: 60px; }
     }
   </style>
@@ -286,9 +255,41 @@
 
   <script>
     function copyCA() {
-      const text = "12EU3xpACKJEZoSZgQUGnv1NgFucRNDdJaPgwuicpump";
-      navigator.clipboard.writeText(text);
+      navigator.clipboard.writeText("12EU3xpACKJEZoSZgQUGnv1NgFucRNDdJaPgwuicpump");
       alert("Contract address copied!");
+    }
+
+    // ---------------- Lightning Random Animation ----------------
+    const lightningCount = 15;
+    const wrapper = document.createElement('div');
+    wrapper.className = 'lightning-wrapper';
+    document.body.appendChild(wrapper);
+
+    for (let i = 0; i < lightningCount; i++) {
+      const l = document.createElement('div');
+      l.className = 'lightning';
+      l.textContent = '⚡';
+      wrapper.appendChild(l);
+
+      function animate() {
+        const size = 14 + Math.random() * 20;
+        const left = Math.random() * 100;
+        const duration = 3 + Math.random() * 3;
+        const topStart = 100 + Math.random() * 20;
+        const topEnd = -10 - Math.random() * 10;
+
+        l.style.fontSize = size + 'px';
+        l.style.left = left + 'vw';
+        l.style.top = topStart + 'vh';
+        l.style.opacity = Math.random() * 0.5 + 0.5;
+
+        l.animate([
+          { transform: `translateY(0vh)` },
+          { transform: `translateY(${topEnd - topStart}vh)` }
+        ], { duration: duration * 1000, easing: 'linear' }).onfinish = animate;
+      }
+
+      animate();
     }
   </script>
 
@@ -309,11 +310,9 @@
     Connect your wallet to use toast.fun below.<br>
     While Plugumons are still mintable, you will have the opportunity to mint one!<br>
     Thanks to Toast, our community can instantly bridge between their $PLUGU and Plugumon NFTs.<br><br>
-
     <strong>WHAT DOES THIS MEAN?:</strong><br>
     This basically means Plugumon NFTs are liquid!<br>
     The bridge allows for seamless conversion between $PLUGU and Plugumons.<br><br>
-
     <strong>TOKEN TO NFT ></strong> When a user wants an NFT those NFTs are pulled from the bridge pool—minted fresh from the pool.<br>
     <strong>NFT TO TOKEN ></strong> NFT goes into the bridge pool for others to claim in the future — The user receives tokens instantly in their wallet!<br>
     <strong>POOL WALLET ADDRESS ></strong> Wallet address that appears on holders list: 
@@ -321,22 +320,11 @@
   </div>
 
   <div class="iframe-container">
-    <iframe
-      src="https://www.toast.fun/embed/bridge/12EU3xpACKJEZoSZgQUGnv1NgFucRNDdJaPgwuicpump"
-      title="toast.fun Bridge"></iframe>
+    <iframe src="https://www.toast.fun/embed/bridge/12EU3xpACKJEZoSZgQUGnv1NgFucRNDdJaPgwuicpump" title="toast.fun Bridge"></iframe>
   </div>
 
   <footer>
     Official Contact Email: Plugumons@gmail.com | © 2025 Plugumons. All rights reserved.
   </footer>
-
-  <!-- Lightning Animation Wrapper -->
-  <div class="lightning-wrapper">
-    <div class="lightning" style="left:10%; animation-delay: 0s;">⚡</div>
-    <div class="lightning" style="left:30%; animation-delay: 2s;">⚡</div>
-    <div class="lightning" style="left:60%; animation-delay: 4s;">⚡</div>
-    <div class="lightning" style="left:80%; animation-delay: 1s;">⚡</div>
-    <div class="lightning" style="left:50%; animation-delay: 3s;">⚡</div>
-  </div>
 </body>
 </html>
