@@ -7,12 +7,13 @@
   <style>
     @import url('https://fonts.googleapis.com/css2?family=Rubik:wght@400;700&display=swap');
 
-    /* --- Global Reset and Fixes --- */
+    /* --- Core Reset and Stability --- */
     html, body {
       height: 100%;
       margin: 0;
       padding: 0;
       overflow-x: hidden;
+      overflow-y: scroll; /* keeps scrollbar width consistent */
     }
 
     body {
@@ -25,12 +26,6 @@
       align-items: center;
       min-height: 100vh;
       position: relative;
-    }
-
-    /* Prevent scroll flicker caused by animated lightning */
-    body, html {
-      overflow-x: hidden !important;
-      overflow-y: auto;
     }
 
     * {
@@ -64,11 +59,6 @@
       box-shadow: 0px 0px 20px rgba(255, 235, 59, 0.2);
       max-width: 90%;
       word-wrap: break-word;
-    }
-
-    .mint-info p {
-      font-size: 1rem;
-      margin: 0;
     }
 
     .button {
@@ -156,36 +146,7 @@
       background: rgba(0, 0, 0, 0.1);
     }
 
-    /* Lightning Effects */
-    .lightning {
-      position: fixed;
-      color: #ffeb3b;
-      font-size: 2rem;
-      opacity: 0.7;
-      animation: floatLightning 6s linear infinite, flicker 3s infinite;
-      pointer-events: none;
-      z-index: 0;
-      will-change: transform, opacity;
-    }
-
-    @keyframes floatLightning {
-      0% { transform: translateY(110vh) rotate(0deg); opacity: 0; }
-      10% { opacity: 0.8; }
-      50% { opacity: 1; }
-      100% { transform: translateY(-20vh) rotate(360deg); opacity: 0; }
-    }
-
-    @keyframes flicker {
-      0%, 18%, 22%, 25%, 53%, 57%, 100% {
-        opacity: 1;
-        text-shadow: 0 0 5px #fff, 0 0 20px #ffeb3b, 0 0 40px #ffeb3b;
-      }
-      20%, 24%, 55% {
-        opacity: 0.2;
-        text-shadow: none;
-      }
-    }
-
+    /* --- Top Links and Logo --- */
     .top-links {
       position: absolute;
       top: 20px;
@@ -253,6 +214,45 @@
     .contract-address:hover {
       background-color: #fdd835;
       transform: scale(1.03);
+    }
+
+    /* --- Lightning Animation Wrapper --- */
+    .lightning-wrapper {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100vw;
+      height: 100vh;
+      overflow: hidden;
+      pointer-events: none;
+      z-index: 0;
+    }
+
+    .lightning {
+      position: absolute;
+      color: #ffeb3b;
+      font-size: 2rem;
+      opacity: 0.7;
+      animation: floatLightning 6s linear infinite, flicker 3s infinite;
+      will-change: transform, opacity;
+    }
+
+    @keyframes floatLightning {
+      0% { transform: translateY(110vh) rotate(0deg); opacity: 0; }
+      10% { opacity: 0.8; }
+      50% { opacity: 1; }
+      100% { transform: translateY(-10vh) rotate(360deg); opacity: 0; }
+    }
+
+    @keyframes flicker {
+      0%, 18%, 22%, 25%, 53%, 57%, 100% {
+        opacity: 1;
+        text-shadow: 0 0 5px #fff, 0 0 20px #ffeb3b, 0 0 40px #ffeb3b;
+      }
+      20%, 24%, 55% {
+        opacity: 0.2;
+        text-shadow: none;
+      }
     }
 
     /* --- Mobile tweaks --- */
@@ -330,11 +330,13 @@
     Official Contact Email: Plugumons@gmail.com | © 2025 Plugumons. All rights reserved.
   </footer>
 
-  <!-- Floating lightning now fixed-positioned, no overflow flicker -->
-  <div class="lightning" style="left:10%; animation-delay: 0s;">⚡</div>
-  <div class="lightning" style="left:30%; animation-delay: 2s;">⚡</div>
-  <div class="lightning" style="left:60%; animation-delay: 4s;">⚡</div>
-  <div class="lightning" style="left:80%; animation-delay: 1s;">⚡</div>
-  <div class="lightning" style="left:50%; animation-delay: 3s;">⚡</div>
+  <!-- Lightning Animation Wrapper -->
+  <div class="lightning-wrapper">
+    <div class="lightning" style="left:10%; animation-delay: 0s;">⚡</div>
+    <div class="lightning" style="left:30%; animation-delay: 2s;">⚡</div>
+    <div class="lightning" style="left:60%; animation-delay: 4s;">⚡</div>
+    <div class="lightning" style="left:80%; animation-delay: 1s;">⚡</div>
+    <div class="lightning" style="left:50%; animation-delay: 3s;">⚡</div>
+  </div>
 </body>
 </html>
