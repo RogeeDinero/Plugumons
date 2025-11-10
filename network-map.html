@@ -1,8 +1,8 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1" />
 <title>Plugumons Live Network Map ⚡</title>
 <style>
   body {
@@ -12,11 +12,12 @@
     font-family: 'Orbitron', sans-serif;
     color: #00ffcc;
   }
+
   #stats {
     position: absolute;
     top: 20px;
     left: 20px;
-    background: rgba(0, 0, 0, 0.6);
+    background: rgba(0,0,0,0.6);
     border: 1px solid #00ffcc;
     border-radius: 10px;
     padding: 15px 20px;
@@ -25,66 +26,62 @@
     line-height: 1.6;
     z-index: 5;
   }
-  #stats h2 {
-    margin: 0 0 10px 0;
-    color: #00ffee;
-    text-shadow: 0 0 10px #00ffee;
-  }
-  canvas {
-    display: block;
-  }
 
-  .back-btn {
-    position: absolute;
-    top: 20px;
-    right: 20px;
-    background: rgba(0, 255, 204, 0.15);
-    border: 2px solid #00ffcc;
-    color: #00ffee;
-    padding: 10px 20px;
-    border-radius: 10px;
-    text-decoration: none;
+  #stats h2 { margin: 0 0 10px 0; color: #00ffee; text-shadow: 0 0 10px #00ffee; }
+  .sync-btn { margin-top: 12px; background: rgba(0,255,204,0.1); border: 1px solid #00ffee; color: #00ffee; padding: 8px 16px; border-radius: 8px; font-size: 1rem; cursor: pointer; font-weight: bold; text-shadow: 0 0 8px #00ffee; transition: 0.3s; }
+  .sync-btn:hover { background: rgba(0,255,204,0.4); box-shadow: 0 0 15px #00ffee; transform: scale(1.05); }
+
+  .back-btn { position: absolute; top: 20px; right: 20px; background: rgba(0,255,204,0.15); border: 2px solid #00ffcc; color: #00ffee; padding: 10px 20px; border-radius: 10px; text-decoration: none; font-weight: bold; font-size: 1rem; transition: 0.3s; box-shadow: 0 0 10px #00ffcc; z-index: 10; }
+  .back-btn:hover { background: rgba(0,255,204,0.4); transform: scale(1.05); box-shadow: 0 0 20px #00ffee; }
+
+  #betaNotice { position: absolute; bottom: 20px; width: 100%; text-align:center; font-weight:bold; font-size:1.3rem; color:#00ffee; text-shadow: 0 0 10px #00ffee, 0 0 20px #00ccff, 0 0 40px #00ffff; z-index:10; animation: glowPulse 2s infinite alternate; }
+  @keyframes glowPulse { from { text-shadow: 0 0 10px #00ffee, 0 0 20px #00ccff, 0 0 40px #00ffff; } to { text-shadow: 0 0 20px #00ffff, 0 0 40px #00ccff, 0 0 60px #00ffee; } }
+
+  canvas { display:block; }
+
+  /* Wallet modal */
+  .modal-overlay { position: fixed; top:0; left:0; width:100%; height:100%; background: rgba(0,0,0,0.8); display:none; align-items:center; justify-content:center; z-index:100; }
+  .modal-content { background:#001a26; border:1px solid #00ffee; border-radius:15px; padding:20px; width:320px; color:#00ffee; box-shadow:0 0 20px #00ffee; position:relative; }
+  .close-btn { position:absolute; right:10px; top:8px; background:none; border:none; color:#00ffee; font-size:1.5rem; cursor:pointer; }
+  .wallet-option { display:flex; align-items:center; justify-content:space-between; background:rgba(0,255,204,0.1); border:1px solid #00ffee; padding:10px; border-radius:10px; margin-top:10px; cursor:pointer; transition:0.3s; }
+  .wallet-option:hover { background: rgba(0,255,204,0.3); }
+  .wallet-icon-wrapper img { width:32px; height:32px; border-radius:6px; }
+  
+  /* Owned wallet badge */
+  #walletBadge {
+    display: none;
+    margin-top: 6px;
+    padding: 4px 8px;
+    background: rgba(255, 255, 0, 0.1);
+    border: 1px solid #ffff66;
+    border-radius: 6px;
+    font-size: 0.9rem;
+    color: #ffff66;
+    text-shadow: 0 0 6px #ffff99;
     font-weight: bold;
-    font-size: 1rem;
-    transition: 0.3s;
-    box-shadow: 0 0 10px #00ffcc;
-    z-index: 10;
   }
-  .back-btn:hover {
-    background: rgba(0, 255, 204, 0.4);
-    transform: scale(1.05);
-    box-shadow: 0 0 20px #00ffee;
-  }
-
-  #betaNotice {
-    position: absolute;
-    bottom: 20px;
-    width: 100%;
-    text-align: center;
-    font-weight: bold;
-    font-size: 1.3rem;
-    color: #00ffee;
-    text-shadow:
-      0 0 10px #00ffee,
-      0 0 20px #00ccff,
-      0 0 40px #00ffff;
-    z-index: 10;
-    animation: glowPulse 2s infinite alternate;
-  }
-
-  @keyframes glowPulse {
-    from { text-shadow: 0 0 10px #00ffee, 0 0 20px #00ccff, 0 0 40px #00ffff; }
-    to { text-shadow: 0 0 20px #00ffff, 0 0 40px #00ccff, 0 0 60px #00ffee; }
+  
+  #ownedMessage {
+    margin-top:8px;
+    color:#bfffbf;
+    font-weight:700;
+    display:block;
   }
 </style>
 </head>
 <body>
+
   <div id="stats">
     <h2>⚡ Plugumon Network Status</h2>
     <div>Power: <span id="power">128,742</span></div>
     <div>Active Plugumons: <span id="plugumons">...</span></div>
     <div>Inactive Plugumons: <span id="inactive">...</span></div>
     <div>Stability: <span id="stability">...</span></div>
+
+    <div id="ownedMessage" style="display:none;">✅ Wallet connected — Plugumons found: <span id="ownedCount">0</span></div>
+    <div id="walletBadge"></div>
+
+    <button class="sync-btn" onclick="openWalletModal()">⚡ Sync Plugumon</button>
   </div>
 
   <a href="index.html" class="back-btn">← Back to Home</a>
@@ -92,167 +89,265 @@
 
   <canvas id="grid"></canvas>
 
+  <!-- Wallet Modal -->
+  <div id="walletModal" class="modal-overlay">
+    <div class="modal-content">
+      <button class="close-btn" onclick="closeWalletModal()">×</button>
+      <div class="modal-header">
+        <h3 style="margin:0 0 6px 0;">Connect Wallet</h3>
+        <div style="opacity:0.85; margin-bottom:8px;">Choose your Solana wallet</div>
+      </div>
+      <div class="wallet-options">
+        <div class="wallet-option" onclick="connectWallet('phantom')">
+          <div style="display:flex;align-items:center">
+            <div class="wallet-icon-wrapper"><img src="images\Phantom-Icon_Circle_60x60.png" alt="Phantom"></div>
+            <div style="margin-left:10px"><div style="font-weight:700">Phantom</div><div style="font-size:0.85rem;opacity:0.8">Browser extension</div></div>
+          </div>
+          <div>→</div>
+        </div>
+
+        <div class="wallet-option" onclick="connectWallet('solflare')">
+          <div style="display:flex;align-items:center">
+            <div class="wallet-icon-wrapper"><img src="images\Solflare (60x60).png" alt="Solflare"></div>
+            <div style="margin-left:10px"><div style="font-weight:700">Solflare</div><div style="font-size:0.85rem;opacity:0.8">Extension / Mobile</div></div>
+          </div>
+          <div>→</div>
+        </div>
+
+        <div class="wallet-option" onclick="connectWallet('backpack')">
+          <div style="display:flex;align-items:center">
+            <div class="wallet-icon-wrapper"><img src="images\backpack (60x60).png" alt="Backpack"></div>
+            <div style="margin-left:10px"><div style="font-weight:700">Backpack</div><div style="font-size:0.85rem;opacity:0.8">Extension / Mobile</div></div>
+          </div>
+          <div>→</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
 <script>
-  const API_KEY = "2c55930f-c3f5-4523-bbf9-a119461178f3";
-  const COLLECTION_ID = "4Qy6grGLpMBk2q13tPt32UkCzahWCSLEBLbRvHCZYket";
-  const HELIUS_URL = `https://mainnet.helius-rpc.com/?api-key=${API_KEY}`;
+// CONFIG
+const API_KEY = "2c55930f-c3f5-4523-bbf9-a119461178f3";
+const COLLECTION_ID = "4Qy6grGLpMBk2q13tPt32UkCzahWCSLEBLbRvHCZYket";
+const HELIUS_URL = `https://mainnet.helius-rpc.com/?api-key=${API_KEY}`;
 
-  const canvas = document.getElementById("grid");
-  const ctx = canvas.getContext("2d");
-  canvas.width = window.innerWidth;
-  canvas.height = window.innerHeight;
-  let nodes = [];
+// Canvas & state
+const canvas = document.getElementById("grid");
+const ctx = canvas.getContext("2d");
+canvas.width = innerWidth;
+canvas.height = innerHeight;
 
-  let totalPlugumons = 1000;
-  let plugumonCount = 0;
-  let avgPower = 128742; // for status box smoothing
+let nodes = [];
+let plugumonCount = 0;
+let totalPlugumons = 1000;
+let avgPower = 128742;
+let connectedWallet = null;
+let ownedMintSet = new Set();
 
-  async function fetchPlugumons() {
-    try {
-      const response = await fetch(HELIUS_URL, {
-        method: "POST",
-        headers: {"Content-Type": "application/json"},
-        body: JSON.stringify({
-          jsonrpc: "2.0",
-          id: "plugumons",
-          method: "getAssetsByGroup",
-          params: {
-            groupKey: "collection",
-            groupValue: COLLECTION_ID,
-            page: 1,
-            limit: 1000
-          }
-        })
-      });
+// Fetch collection
+async function fetchPlugumons() {
+  try {
+    const body = { jsonrpc: "2.0", id: "plugumons", method: "getAssetsByGroup", params: { groupKey:"collection", groupValue:COLLECTION_ID, page:1, limit:1000 } };
+    const res = await fetch(HELIUS_URL, { method:"POST", headers:{"Content-Type":"application/json"}, body: JSON.stringify(body) });
+    const data = await res.json();
+    const assets = data?.result?.items || [];
+    plugumonCount = assets.length;
 
-      const data = await response.json();
-      const assets = data?.result?.items || [];
-      plugumonCount = assets.length;
+    nodes = assets.map((nft, idx)=>({
+      x: Math.random()*canvas.width,
+      y: Math.random()*canvas.height,
+      radius: 3 + Math.random()*3,
+      speedX: (Math.random()-0.5)*0.25,
+      speedY: (Math.random()-0.5)*0.25,
+      id: nft.content?.metadata?.name || `Plugumon #${idx+1}`,
+      img: nft.content?.links?.image || null,
+      mint: nft?.mint || nft?.asset || nft?.id || null,
+      owner: nft.ownership?.owner || null,
+      glow: 0,
+      power: 100 + Math.random()*300
+    }));
 
-      // Generate nodes with NFT metadata and initial random Power
-      nodes = assets.map((nft, index) => ({
-        x: Math.random() * canvas.width,
-        y: Math.random() * canvas.height,
-        radius: 3 + Math.random() * 3,
-        speedX: (Math.random() - 0.5) * 0.6,
-        speedY: (Math.random() - 0.5) * 0.6,
-        id: nft.content?.metadata?.name || `Plugumon #${index+1}`,
-        img: nft.content?.links?.image || null,
-        glow: 0,
-        power: 100 + Math.random() * 300
-      }));
+    document.getElementById("plugumons").textContent = plugumonCount;
+    document.getElementById("inactive").textContent = totalPlugumons - plugumonCount;
+  } catch (err) { console.error("Helius fetch error:", err); }
+}
 
-      document.getElementById("plugumons").textContent = plugumonCount;
-      document.getElementById("inactive").textContent = totalPlugumons - plugumonCount;
+// DRAW / ANIMATE
+function drawScene() {
+  ctx.clearRect(0,0,canvas.width,canvas.height);
+  connectNodes();
+  drawNodes();
+  updateNetworkPower();
+  updateStability();
+  requestAnimationFrame(drawScene);
+}
 
-      drawScene();
-    } catch (err) {
-      console.error("Error fetching Plugumons:", err);
+function drawNodes() {
+  const t = Date.now();
+  nodes.forEach(node=>{
+    node.power += (Math.random()-0.5)*0.3;
+    node.power = Math.max(50, Math.min(node.power,500));
+    node.x += node.speedX;
+    node.y += node.speedY;
+    if(node.x<0||node.x>canvas.width) node.speedX*=-1;
+    if(node.y<0||node.y>canvas.height) node.speedY*=-1;
+
+    const isOwned = connectedWallet && (node.owner===connectedWallet || ownedMintSet.has(node.mint));
+    let baseColor = "#00ffcc", fillColor = baseColor, shadowColor="#00ffff", radiusExtra=0, shadowBlur=12;
+
+    if(isOwned){
+      const pulse = 1 + Math.abs(Math.sin(t/600));
+      fillColor="#ffff66";
+      shadowColor="#ffff99";
+      radiusExtra=2 + pulse*2;
+      shadowBlur=20 + pulse*12;
     }
-  }
 
-  function drawScene() {
-    ctx.clearRect(0, 0, canvas.width, canvas.height);
-    connectNodes();
-    drawNodes();
-    updateNetworkPower();
-    updateStability();
-    requestAnimationFrame(drawScene);
-  }
+    ctx.beginPath();
+    ctx.arc(node.x,node.y,node.radius+radiusExtra,0,Math.PI*2);
+    ctx.fillStyle = fillColor;
+    ctx.shadowBlur = shadowBlur;
+    ctx.shadowColor = shadowColor;
+    ctx.fill();
+  });
+}
 
-  function drawNodes() {
-    nodes.forEach(node => {
-      // Smaller fluctuation for slower movement
-      node.power += (Math.random() - 0.5) * 1.5;
-      node.power = Math.max(50, Math.min(node.power, 500));
-
-      ctx.beginPath();
-      ctx.arc(node.x, node.y, node.radius + node.glow * 0.3, 0, Math.PI * 2);
-      ctx.fillStyle = "#00ffcc";
-      ctx.shadowBlur = 15 + node.glow * 10;
-      ctx.shadowColor = "#00ffff";
-      ctx.fill();
-
-      node.x += node.speedX;
-      node.y += node.speedY;
-      if (node.glow > 0) node.glow -= 0.05; // slower fade
-      if (node.x < 0 || node.x > canvas.width) node.speedX *= -1;
-      if (node.y < 0 || node.y > canvas.height) node.speedY *= -1;
-    });
-  }
-
-  function connectNodes() {
-    for (let i = 0; i < nodes.length; i++) {
-      for (let j = i + 1; j < nodes.length; j++) {
-        const dx = nodes[i].x - nodes[j].x;
-        const dy = nodes[i].y - nodes[j].y;
-        const dist = Math.sqrt(dx*dx + dy*dy);
-        if (dist < 150) {
-          ctx.beginPath();
-          ctx.moveTo(nodes[i].x, nodes[i].y);
-          ctx.lineTo(nodes[j].x, nodes[j].y);
-          ctx.strokeStyle = "rgba(0,255,204," + (1 - dist / 150) + ")";
-          ctx.lineWidth = 0.5;
-          ctx.stroke();
-        }
+function connectNodes(){
+  for(let i=0;i<nodes.length;i++){
+    for(let j=i+1;j<nodes.length;j++){
+      const dx=nodes[i].x-nodes[j].x, dy=nodes[i].y-nodes[j].y;
+      const dist=Math.sqrt(dx*dx+dy*dy);
+      if(dist<150){
+        ctx.beginPath();
+        ctx.moveTo(nodes[i].x,nodes[i].y);
+        ctx.lineTo(nodes[j].x,nodes[j].y);
+        ctx.strokeStyle=`rgba(0,255,204,${1-dist/150})`;
+        ctx.lineWidth=0.5;
+        ctx.stroke();
       }
     }
   }
+}
 
-  // Update total Power in status box with smoothing
-  function updateNetworkPower() {
-    const totalPower = nodes.reduce((sum, n) => sum + n.power, 0);
-    // Smooth transition
-    avgPower += (totalPower - avgPower) * 0.02;
-    document.getElementById("power").textContent = Math.floor(avgPower).toLocaleString();
+// NETWORK STATS
+function updateNetworkPower(){ 
+  const totalPower = nodes.reduce((s,n)=>s+(n.power||0),0);
+  avgPower+=(totalPower-avgPower)*0.02;
+  document.getElementById("power").textContent=Math.floor(avgPower).toLocaleString();
+}
+
+function updateStability(){
+  const activityRatio=plugumonCount/totalPlugumons;
+  const powerFactor=avgPower/(nodes.length*200||1);
+  let stability=80+activityRatio*15+powerFactor*5;
+  stability=Math.min(100,stability);
+  document.getElementById("stability").textContent=stability.toFixed(1)+"%";
+}
+
+// TOOLTIP
+const tooltip=document.createElement("div");
+tooltip.style.position="absolute";
+tooltip.style.padding="6px 10px";
+tooltip.style.background="rgba(0,0,0,0.85)";
+tooltip.style.border="1px solid #00ff99";
+tooltip.style.borderRadius="8px";
+tooltip.style.color="#fff";
+tooltip.style.fontSize="0.9rem";
+tooltip.style.pointerEvents="none";
+tooltip.style.display="none";
+tooltip.style.zIndex="50";
+document.body.appendChild(tooltip);
+
+canvas.addEventListener("mousemove", e=>{
+  let hover=null;
+  for(const node of nodes){
+    const dx=e.clientX-node.x, dy=e.clientY-node.y;
+    if(Math.sqrt(dx*dx+dy*dy)<10){ hover=node; break; }
   }
+  if(hover){
+    tooltip.style.left=e.clientX+12+"px";
+    tooltip.style.top=e.clientY+12+"px";
+    tooltip.innerHTML=`<strong>${hover.id}</strong><br>Power: ${hover.power.toFixed(1)} ⚡`;
+    if(hover.img) tooltip.innerHTML+=`<br><img src="${hover.img}" width="92" style="border-radius:6px;margin-top:6px;">`;
+    tooltip.style.display="block";
+  } else tooltip.style.display="none";
+});
 
-  // Update Stability based on Power and active Plugumons
-  function updateStability() {
-    const activityRatio = plugumonCount / totalPlugumons;
-    const powerFactor = avgPower / (nodes.length * 200 || 1); // assume avg expected power ~200
-    let stability = 80 + activityRatio * 15 + powerFactor * 5;
-    stability = Math.min(100, stability);
-    document.getElementById("stability").textContent = stability.toFixed(1) + "%";
-  }
+// WALLET & OWNERSHIP
+async function getAssetsByOwner(owner){
+  try{
+    const body={ jsonrpc:"2.0", id:"by-owner", method:"getAssetsByOwner", params:{ owner:owner, page:1, limit:1000 } };
+    const res=await fetch(HELIUS_URL,{ method:"POST", headers:{"Content-Type":"application/json"}, body:JSON.stringify(body) });
+    const data=await res.json();
+    return data?.result?.items||[];
+  }catch(err){ console.error(err); return []; }
+}
 
-  // Tooltip
-  const tooltip = document.createElement("div");
-  tooltip.style.position = "absolute";
-  tooltip.style.padding = "6px 10px";
-  tooltip.style.background = "rgba(0, 0, 0, 0.8)";
-  tooltip.style.border = "1px solid #00ff99";
-  tooltip.style.borderRadius = "8px";
-  tooltip.style.color = "#fff";
-  tooltip.style.fontSize = "0.9rem";
-  tooltip.style.pointerEvents = "none";
-  tooltip.style.display = "none";
-  tooltip.style.zIndex = "10";
-  document.body.appendChild(tooltip);
+function showOwnedMessage(count){
+  const el=document.getElementById("ownedMessage");
+  el.style.display="block";
+  document.getElementById("ownedCount").textContent=count;
 
-  canvas.addEventListener("mousemove", e => {
-    let hover = null;
-    nodes.forEach(node => {
-      const dx = e.clientX - node.x;
-      const dy = e.clientY - node.y;
-      if (Math.sqrt(dx*dx + dy*dy) < 10) hover = node;
+  const badge=document.getElementById("walletBadge");
+  if(connectedWallet) badge.style.display="block";
+}
+
+function displayWalletBadge(pubkey){
+  const badge=document.getElementById("walletBadge");
+  badge.textContent=`Wallet: ${pubkey.slice(0,6)}...${pubkey.slice(-4)}`;
+}
+
+function openWalletModal(){ document.getElementById("walletModal").style.display="flex"; }
+function closeWalletModal(){ document.getElementById("walletModal").style.display="none"; }
+
+async function connectWallet(type){
+  closeWalletModal();
+  let provider=null;
+  try{
+    if(type==="phantom" && window.solana?.isPhantom) provider=window.solana;
+    else if(type==="backpack" && window.backpack) provider=window.backpack;
+    else if(type==="solflare" && window.solflare) provider=window.solflare;
+  }catch(e){ provider=null; }
+
+  if(!provider){ alert(`${type} wallet not detected.`); return; }
+
+  try{
+    let resp=await provider.connect();
+    const pubkey=resp?.publicKey?.toString()||resp?.publicKey||resp?.address;
+    if(!pubkey){ alert("Connected but could not get public key."); return; }
+    connectedWallet=pubkey;
+
+    // fetch owned assets
+    const ownerAssets=await getAssetsByOwner(connectedWallet);
+    const ownedMints=[];
+    ownerAssets.forEach(a=>{
+      const grouping=a?.grouping||[];
+      const inGroup=grouping.some(g=>(g.group_key==="collection" && g.group_value===COLLECTION_ID));
+      const contentCollectionId=a?.content?.metadata?.collection?.id||a?.collection?.id||null;
+      if(inGroup||contentCollectionId===COLLECTION_ID){
+        const mint=a?.mint||a?.asset||a?.id||null;
+        if(mint) ownedMints.push(mint);
+      }
     });
-    if (hover) {
-      tooltip.style.left = e.clientX + 10 + "px";
-      tooltip.style.top = e.clientY + 10 + "px";
-      tooltip.innerHTML = `<strong>${hover.id}</strong><br>Power: ${hover.power.toFixed(1)} ⚡`;
-      if (hover.img) tooltip.innerHTML += `<br><img src="${hover.img}" width="80" style="border-radius:6px;margin-top:4px;">`;
-      tooltip.style.display = "block";
-    } else tooltip.style.display = "none";
-  });
+    ownedMintSet=new Set(ownedMints);
 
-  fetchPlugumons();
-  setInterval(fetchPlugumons, 60000);
+    let foundCount=0;
+    nodes.forEach(n=>{ if(ownedMintSet.has(n.mint)||(n.owner && n.owner===connectedWallet)) foundCount++; });
 
-  window.addEventListener("resize", () => {
-    canvas.width = window.innerWidth;
-    canvas.height = window.innerHeight;
-  });
+    showOwnedMessage(foundCount);
+    displayWalletBadge(connectedWallet);
+    alert(`✅ Wallet connected — Plugumons found: ${foundCount}`);
+  }catch(err){ console.error(err); alert("Connection failed: "+(err?.message||err)); }
+}
+
+// STARTUP
+(async function init(){
+  await fetchPlugumons();
+  drawScene();
+  setInterval(fetchPlugumons,60000);
+})();
+
+window.addEventListener("resize",()=>{ canvas.width=innerWidth; canvas.height=innerHeight; });
 </script>
 </body>
 </html>
