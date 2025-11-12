@@ -58,3 +58,4 @@ deploy/
 # Environment files
 *.env
 *.env.*
+.env
