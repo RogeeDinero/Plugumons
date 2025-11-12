@@ -220,6 +220,7 @@
 
     async function getAIResponse(message) {
       try {
+        // UPDATED URL: points to deployed Render AI server with Hugging Face Router
         const response = await fetch("https://plugumons-ai-server.onrender.com/api/ai", { 
           method: "POST",
           headers: { "Content-Type": "application/json" },
@@ -238,5 +239,6 @@
   </script>
 </body>
 </html>
+
 
 
