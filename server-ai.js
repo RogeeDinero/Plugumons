@@ -1,69 +1,72 @@
-// server.js
 import express from "express";
-import fetch from "node-fetch";
 import cors from "cors";
 import dotenv from "dotenv";
+import fetch from "node-fetch";
 
 dotenv.config();
 
 const app = express();
-const PORT = process.env.PORT || 3000;
-
 app.use(cors());
 app.use(express.json());
 
-const HF_API_KEY = process.env.HF_API_KEY;
+// ====== HuggingFace Model Info ======
+const HF_MODEL = "PlugumonsAI/PlugumonAI";
+const HF_URL = `https://router.huggingface.co/hf-inference/models/${HF_MODEL}`;
+const HF_KEY = process.env.HUGGINGFACE_API_KEY;
 
+// ====== API ROUTE ======
 app.post("/api/ai", async (req, res) => {
-  const { message } = req.body;
-
-  if (!message) return res.status(400).json({ error: "Message is required" });
-
   try {
-    const hfResponse = await fetch(
-      "https://router.huggingface.co/hf-inference/PlugumonsAI/PlugumonAI", 
-      {
-        method: "POST",
-        headers: {
-          "Authorization": `Bearer ${HF_API_KEY}`,
-          "Content-Type": "application/json"
-        },
-        body: JSON.stringify({ inputs: message })
-      }
-    );
+    const userMessage = req.body.message || "";
 
-    const text = await hfResponse.text();
+    console.log("📩 Incoming:", userMessage);
 
-    console.log("🔍 HF RAW RESPONSE:", text);
+    // HF Request
+    const hfResponse = await fetch(HF_URL, {
+      method: "POST",
+      headers: {
+        "Authorization": `Bearer ${HF_KEY}`,
+        "Content-Type": "application/json"
+      },
+      body: JSON.stringify({
+        inputs: userMessage,
+        parameters: { max_new_tokens: 120 }
+      })
+    });
+
+    const raw = await hfResponse.text();
+    console.log("🔍 HF RAW RESPONSE:", raw);
 
     let data;
     try {
-      data = JSON.parse(text);
-    } catch {
-      return res.status(500).json({
-        reply: "⚡ HF returned a non-JSON response.",
-        raw: text
-      });
+      data = JSON.parse(raw);
+    } catch (err) {
+      console.error("❌ Failed to parse HF JSON:", err);
+      return res.json({ reply: "⚡ Agent Plug had trouble reading the response." });
     }
 
-    if (!hfResponse.ok) {
-      console.error("❌ Hugging Face API error:", data);
-      return res.status(500).json({
-        reply: "⚡ AI server error.",
-        details: data
-      });
+    if (data.error) {
+      console.error("❌ HuggingFace API error:", data);
+      return res.json({ reply: "⚡ Model error: " + data.error });
     }
 
-    const reply = data?.generated_text || "🤖 Plugumon said nothing.";
+    // HF text models respond differently — this handles both formats
+    const reply =
+      data[0]?.generated_text ||
+      data.generated_text ||
+      "⚡ No response from Plugumon model.";
+
+    console.log("🤖 AI Reply:", reply);
+
     res.json({ reply });
 
   } catch (err) {
-    console.error("🔥 Server ERROR:", err);
-    res.status(500).json({ reply: "⚡ Error connecting to AI server." });
+    console.error("🔥 SERVER ERROR:", err);
+    res.json({ reply: "⚡ Server error connecting to Plugumons AI." });
   }
 });
 
-app.listen(PORT, () => {
-  console.log(`🚀 Plugumons AI server running on port ${PORT}`);
+// ====== START SERVER ======
+app.listen(3001, () => {
+  console.log("🚀 Plugumons AI server running on port 3001");
 });
-
