@@ -13,9 +13,9 @@ app.use(express.json());
 // === CONFIG: SWITCH BETWEEN TEST & PRODUCTION ===
 const USE_INFERENCE_ENDPOINT = process.env.USE_INFERENCE_ENDPOINT === "true";
 
-// Option 1: GPT-2 (free, instant test)
+// Option 1: GPT-2 (free, instant test) — NEW ROUTER ENDPOINT
 const TEST_MODEL = "gpt2";
-const TEST_URL = `https://api-inference.huggingface.co/models/${TEST_MODEL}`;
+const TEST_URL = `https://router.huggingface.co/hf-inference/models/${TEST_MODEL}`;  // ← FIXED
 
 // Option 2: Your real model (via Inference Endpoint)
 const PROD_URL = process.env.HF_ENDPOINT_URL; // e.g., https://abc123.us-east-1.aws.endpoints.huggingface.cloud
@@ -105,4 +105,5 @@ const PORT = process.env.PORT || 3001;
 app.listen(PORT, () => {
   console.log(`AI Server running on port ${PORT}`);
   console.log(`Mode: ${USE_INFERENCE_ENDPOINT ? "PRODUCTION (Inference Endpoint)" : "TEST (GPT-2)"}`);
+  console.log(`Using URL: ${HF_URL}`);
 });
