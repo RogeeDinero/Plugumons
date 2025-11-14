@@ -16,22 +16,21 @@ const HF_KEY = process.env.HUGGINGFACE_API_KEY;
 
 // ====== API ROUTE ======
 app.post("/api/ai", async (req, res) => {
-  const userMessage = req.body.message?.trim();
-  if (!userMessage) return res.json({ reply: "🤖 Send me a message first!" });
-
-  console.log("📩 Incoming:", userMessage);
-
   try {
+    const userMessage = req.body.message || "";
+    console.log("📩 Incoming:", userMessage);
+
+    // HF Request
     const hfResponse = await fetch(HF_URL, {
       method: "POST",
       headers: {
         "Authorization": `Bearer ${HF_KEY}`,
-        "Content-Type": "application/json",
+        "Content-Type": "application/json"
       },
       body: JSON.stringify({
         inputs: userMessage,
-        parameters: { max_new_tokens: 120 },
-      }),
+        parameters: { max_new_tokens: 120 }
+      })
     });
 
     const raw = await hfResponse.text();
@@ -46,13 +45,14 @@ app.post("/api/ai", async (req, res) => {
     }
 
     if (data.error) {
-      console.error("❌ Hugging Face API error:", data.error);
-      return res.json({ reply: `⚡ Hugging Face error: ${data.error}` });
+      console.error("❌ HuggingFace API error:", data.error);
+      return res.json({ reply: "⚡ Model error: " + data.error });
     }
 
-    // Handle different response formats
+    // HF text models respond differently — this handles both formats
     const reply =
-      Array.isArray(data) ? data[0]?.generated_text : data.generated_text || "⚡ No response from Plugumon model.";
+      (Array.isArray(data) ? data[0]?.generated_text : data.generated_text) ||
+      "⚡ No response from Plugumon model.";
 
     console.log("🤖 AI Reply:", reply);
     res.json({ reply });
@@ -68,3 +68,4 @@ const PORT = process.env.PORT || 3001;
 app.listen(PORT, () => {
   console.log(`🚀 Plugumons AI server running on port ${PORT}`);
 });
+
