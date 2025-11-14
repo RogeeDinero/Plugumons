@@ -9,7 +9,9 @@
     "dev": "node server.js",
     "prod": "NODE_ENV=production node server.js",
     "ai-start": "node server-ai.js",
-    "ai-dev": "nodemon server-ai.js"
+    "ai-dev": "nodemon server-ai.js",
+    "python-ai": "python3 server_gpt2.py",
+    "start-all": "concurrently \"node server.js\" \"python3 server_gpt2.py\" \"node server-ai.js\""
   },
   "keywords": [
     "solana",
@@ -35,7 +37,8 @@
     "dotenv": "^17.2.3",
     "express": "^5.1.0",
     "node-cron": "^4.2.1",
-    "node-fetch": "^3.3.2"
+    "node-fetch": "^3.3.2",
+    "concurrently": "^8.2.0"
   },
   "repository": {
     "type": "git",
@@ -46,3 +49,4 @@
   },
   "homepage": "https://github.com/rogeedinero/plugumons"
 }
+
