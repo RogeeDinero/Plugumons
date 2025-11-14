@@ -10,8 +10,9 @@ const app = express();
 app.use(cors());
 app.use(express.json());
 
+// HuggingFace model and new router URL
 const HF_MODEL = "distilgpt2"; // you can change to another model
-const HF_URL = `https://api-inference.huggingface.co/models/${HF_MODEL}`;
+const HF_URL = `https://router.huggingface.co/hf-inference/models/${HF_MODEL}`;
 const HF_KEY = process.env.HUGGINGFACE_API_KEY;
 
 if (!HF_KEY) {
@@ -43,8 +44,11 @@ app.post("/api/ai", async (req, res) => {
     }
 
     const data = await response.json();
-    // Hugging Face returns an array with generated_text
-    const reply = Array.isArray(data) ? data[0]?.generated_text?.trim() : data.generated_text?.trim();
+    // HuggingFace router returns an array with generated_text
+    const reply = Array.isArray(data)
+      ? data[0]?.generated_text?.trim()
+      : data.generated_text?.trim();
+
     res.json({ reply: reply || "🤖 Plugumon is silent..." });
 
   } catch (err) {
