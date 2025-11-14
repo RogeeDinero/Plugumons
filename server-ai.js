@@ -16,11 +16,12 @@ const HF_KEY = process.env.HUGGINGFACE_API_KEY;
 
 // ====== API ROUTE ======
 app.post("/api/ai", async (req, res) => {
+  const userMessage = req.body.message?.trim();
+  if (!userMessage) return res.json({ reply: "🤖 Send me a message first!" });
+
+  console.log("📩 Incoming:", userMessage);
+
   try {
-    const userMessage = req.body.message || "";
-
-    console.log("📩 Incoming:", userMessage);
-
     const hfResponse = await fetch(HF_URL, {
       method: "POST",
       headers: {
@@ -29,7 +30,6 @@ app.post("/api/ai", async (req, res) => {
       },
       body: JSON.stringify({
         inputs: userMessage,
-        options: { wait_for_model: true }, // ensures model is ready
         parameters: { max_new_tokens: 120 },
       }),
     });
@@ -46,16 +46,15 @@ app.post("/api/ai", async (req, res) => {
     }
 
     if (data.error) {
-      console.error("❌ HuggingFace API error:", data.error);
-      return res.json({ reply: "⚡ Model error: " + data.error });
+      console.error("❌ Hugging Face API error:", data.error);
+      return res.json({ reply: `⚡ Hugging Face error: ${data.error}` });
     }
 
+    // Handle different response formats
     const reply =
-      (Array.isArray(data) ? data[0]?.generated_text : data.generated_text) ||
-      "⚡ No response from Plugumon model.";
+      Array.isArray(data) ? data[0]?.generated_text : data.generated_text || "⚡ No response from Plugumon model.";
 
     console.log("🤖 AI Reply:", reply);
-
     res.json({ reply });
 
   } catch (err) {
@@ -69,5 +68,3 @@ const PORT = process.env.PORT || 3001;
 app.listen(PORT, () => {
   console.log(`🚀 Plugumons AI server running on port ${PORT}`);
 });
-
-
