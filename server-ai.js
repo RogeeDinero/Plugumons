@@ -1,32 +1,35 @@
-import express from "express";
-import fetch from "node-fetch";
-import dotenv from "dotenv";
-
-dotenv.config();
-
-const app = express();
-app.use(express.json());
-
 app.post("/api/ai", async (req, res) => {
   const { message } = req.body;
   if (!message) return res.json({ reply: "🤖 Send me a message first!" });
 
   try {
+    console.log("📩 Incoming:", message);
+
     const hfResponse = await fetch(
       "https://router.huggingface.co/hf-inference/models/PlugumonsAI/PlugumonAI",
       {
         method: "POST",
         headers: {
           "Authorization": `Bearer ${process.env.HUGGINGFACE_API_KEY}`,
-          "Content-Type": "application/json"
+          "Content-Type": "application/json",
         },
-        body: JSON.stringify({ inputs: message })
+        body: JSON.stringify({ inputs: message }),
       }
     );
 
-    const data = await hfResponse.json();
+    console.log("🔍 HF RESPONSE STATUS:", hfResponse.status);
 
-    // Hugging Face returns different formats; handle text output
+    const text = await hfResponse.text(); // temporarily read as text to debug
+    console.log("🔍 HF RAW RESPONSE:", text);
+
+    let data;
+    try {
+      data = JSON.parse(text);
+    } catch (err) {
+      console.error("❌ Failed to parse HF JSON:", err);
+      return res.json({ reply: "⚡ Hugging Face returned invalid JSON." });
+    }
+
     let reply;
     if (data.error) {
       reply = `⚡ Hugging Face API error: ${data.error}`;
@@ -42,8 +45,3 @@ app.post("/api/ai", async (req, res) => {
     res.json({ reply: "⚡ Error connecting to AI server." });
   }
 });
-
-const PORT = process.env.PORT || 3001;
-app.listen(PORT, () =>
-  console.log(`🚀 Plugumons AI server running on port ${PORT}`)
-);
