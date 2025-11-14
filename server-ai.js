@@ -10,31 +10,29 @@ const app = express();
 app.use(cors());
 app.use(express.json());
 
-// === CONFIG: SWITCH BETWEEN TEST & PRODUCTION ===
+// === CONFIG ===
 const USE_INFERENCE_ENDPOINT = process.env.USE_INFERENCE_ENDPOINT === "true";
 
-// Option 1: GPT-2 (free, instant test) — NEW ROUTER ENDPOINT
-const TEST_MODEL = "gpt2";
-const TEST_URL = `https://router.huggingface.co/hf-inference/models/${TEST_MODEL}`;  // ← FIXED
+// TEST: Use distilgpt2 (works reliably)
+const TEST_MODEL = "distilgpt2";
+const TEST_URL = `https://router.huggingface.co/hf-inference/models/${TEST_MODEL}`;
 
-// Option 2: Your real model (via Inference Endpoint)
-const PROD_URL = process.env.HF_ENDPOINT_URL; // e.g., https://abc123.us-east-1.aws.endpoints.huggingface.cloud
+// PROD: Your model later
+const PROD_URL = process.env.HF_ENDPOINT_URL;
 
 const HF_URL = USE_INFERENCE_ENDPOINT ? PROD_URL : TEST_URL;
 const HF_KEY = process.env.HUGGINGFACE_API_KEY;
 
-// === VALIDATION ===
 if (!HF_KEY) {
-  console.error("HUGGINGFACE_API_KEY is missing in environment variables!");
+  console.error("HUGGINGFACE_API_KEY missing!");
   process.exit(1);
 }
 
 if (USE_INFERENCE_ENDPOINT && !PROD_URL) {
-  console.error("HF_ENDPOINT_URL is missing but USE_INFERENCE_ENDPOINT=true");
+  console.error("HF_ENDPOINT_URL missing but USE_INFERENCE_ENDPOINT=true");
   process.exit(1);
 }
 
-// === ROUTE ===
 app.post("/api/ai", async (req, res) => {
   const userMessage = req.body.message?.trim();
   if (!userMessage) {
@@ -42,6 +40,7 @@ app.post("/api/ai", async (req, res) => {
   }
 
   console.log("Incoming:", userMessage);
+  console.log("Using URL:", HF_URL);  // ← DEBUG LOG
 
   try {
     const controller = new AbortController();
@@ -67,7 +66,7 @@ app.post("/api/ai", async (req, res) => {
 
     if (!response.ok) {
       console.error("HF Error:", response.status, raw);
-      return res.json({ reply: `AI error: ${response.status}` });
+      return res.json({ reply: `AI error: ${response.status} - ${raw}` });
     }
 
     let data;
@@ -83,7 +82,6 @@ app.post("/api/ai", async (req, res) => {
       return res.json({ reply: `Model error: ${data.error}` });
     }
 
-    // Handle both: [ { generated_text: "..." } ] and { generated_text: "..." }
     const reply = Array.isArray(data)
       ? data[0]?.generated_text?.trim()
       : data.generated_text?.trim();
@@ -100,10 +98,8 @@ app.post("/api/ai", async (req, res) => {
   }
 });
 
-// === START SERVER ===
 const PORT = process.env.PORT || 3001;
 app.listen(PORT, () => {
-  console.log(`AI Server running on port ${PORT}`);
-  console.log(`Mode: ${USE_INFERENCE_ENDPOINT ? "PRODUCTION (Inference Endpoint)" : "TEST (GPT-2)"}`);
-  console.log(`Using URL: ${HF_URL}`);
+  console.log(`AI Server on ${PORT}`);
+  console.log(`Mode: ${USE_INFERENCE_ENDPOINT ? "PROD" : "TEST"}`);
 });
