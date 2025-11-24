@@ -6,121 +6,52 @@
   <title>Plugumons ⚡</title>
   <style>
     @import url('https://fonts.googleapis.com/css2?family=Rubik:wght@400;700&display=swap');
-    html { overflow-y: scroll; scrollbar-gutter: stable both-edges; }
-    body {
-      height: 100%; margin: 0; padding: 0; overflow: hidden;
-      font-family: 'Rubik', sans-serif;
-      background: linear-gradient(135deg, #007bff 0%, #00c3ff 100%);
-      color: #ffeb3b; text-align: center;
-      display: flex; flex-direction: column; align-items: center;
-      min-height: 100vh; position: relative;
-    }
-    * { box-sizing: border-box; max-width: 100%; }
-    h1 { font-size: 3rem; margin: 0.5em 0; text-shadow: 0px 3px 8px rgba(0, 0, 0, 0.3); }
-    h2 { font-size: 1.3rem; max-width: 90%; color: #fff; font-weight: 400; margin: 0.5em auto; line-height: 1.5; }
-    .mint-info {
-      margin-top: 2em; background: rgba(255, 235, 59, 0.1); border: 2px solid #ffeb3b;
-      border-radius: 16px; padding: 20px; display: inline-block; color: #fff;
-      box-shadow: 0 0 20px rgba(255, 235, 59, 0.2); max-width: 90%;
-    }
-    .button {
-      background: #ffeb3b; color: #007bff; font-weight: 700;
-      border: none; border-radius: 50px; padding: 12px 25px; margin: 10px;
-      font-size: 1rem; cursor: pointer; transition: 0.2s ease; text-decoration: none;
-      display: inline-block; box-shadow: 0 0 20px 4px #00ff99; animation: pulse 2s infinite;
-      white-space: nowrap;
-    }
-    @keyframes pulse { 0%{box-shadow:0 0 10px 2px #00ff99;}50%{box-shadow:0 0 25px 8px #00ff99;}100%{box-shadow:0 0 10px 2px #00ff99;} }
-    .button:hover { background: #fff43b; transform: scale(1.05); }
-    .iframe-container {
-      background: rgba(0,0,0,0.9); border-radius:16px; padding:10px; margin-top:15px;
-      box-shadow:0 0 20px 4px #ffeb3b; animation: yellowGlow 2s infinite;
-      width:90%; max-width:450px; height:620px; overflow:hidden;
-    }
-    @keyframes yellowGlow { 0%{box-shadow:0 0 15px 3px #ffeb3b;}50%{box-shadow:0 0 30px 10px #ffeb3b;}100%{box-shadow:0 0 15px 3px #ffeb3b;} }
-    iframe { border:none; border-radius:8px; width:100%; height:100%; display:block; }
-    .exchange-text {
-      color:#fff; font-size:1.1rem; margin-top:40px; margin-bottom:20px;
-      text-shadow:0px 0px 10px rgba(255,255,255,0.6);
-      animation:textPulse 3s infinite; padding:0 15px; max-width:95%; text-align:left;
-    }
-    @keyframes textPulse {
-      0%{text-shadow:0 0 8px #fff,0 0 15px #00c3ff;opacity:.9;}
-      50%{text-shadow:0 0 18px #fff,0 0 30px #00ffcc;opacity:1;}
-      100%{text-shadow:0 0 8px #fff,0 0 15px #00c3ff;opacity:.9;}
-    }
-    footer {
-      margin-top:auto; padding:20px 10px; font-size:.9rem; color:#fff; opacity:.8;
-      width:100%; text-align:center; background:rgba(0,0,0,0.1);
-    }
+    html, body { margin:0; padding:0; height:100%; font-family:'Rubik', sans-serif; background: linear-gradient(135deg, #007bff 0%, #00c3ff 100%); color:#ffeb3b; text-align:center; overflow-y: scroll; }
+    h1 { font-size:3rem; margin:0.5em 0; text-shadow:0px 3px 8px rgba(0,0,0,0.3); }
+    h2 { font-size:1.3rem; margin:0.5em auto; line-height:1.5; max-width:90%; color:#fff; font-weight:400; }
+    .mint-info { margin-top:2em; background: rgba(255,235,59,0.1); border:2px solid #ffeb3b; border-radius:16px; padding:20px; display:inline-block; color:#fff; box-shadow:0 0 20px rgba(255,235,59,0.2); max-width:90%; }
+    .button { background:#ffeb3b; color:#007bff; font-weight:700; border:none; border-radius:50px; padding:12px 25px; margin:10px; font-size:1rem; cursor:pointer; text-decoration:none; display:inline-block; box-shadow:0 0 20px 4px #00ff99; animation:pulse 2s infinite; }
+    @keyframes pulse {0%{box-shadow:0 0 10px 2px #00ff99;}50%{box-shadow:0 0 25px 8px #00ff99;}100%{box-shadow:0 0 10px 2px #00ff99;}}
+    .button:hover { background:#fff43b; transform:scale(1.05); }
+    .disabled { pointer-events:none; opacity:0.5; box-shadow:none; animation:none; }
+    .exchange-text { color:#fff; font-size:1.1rem; margin:40px 0 20px; text-shadow:0px 0px 10px rgba(255,255,255,0.6); animation:textPulse 3s infinite; padding:0 15px; max-width:95%; text-align:left; }
+    @keyframes textPulse {0%{text-shadow:0 0 8px #fff,0 0 15px #00c3ff;opacity:.9;}50%{text-shadow:0 0 18px #fff,0 0 30px #00ffcc;opacity:1;}100%{text-shadow:0 0 8px #fff,0 0 15px #00c3ff;opacity:.9;}}
+    footer { margin-top:auto; padding:20px 10px; font-size:.9rem; color:#fff; opacity:.8; width:100%; text-align:center; background:rgba(0,0,0,0.1); }
     .top-links { position:absolute; top:20px; right:20px; display:flex; gap:10px; z-index:10; }
-    .top-links a {
-      background:rgba(255,235,59,0.2); border:2px solid #ffeb3b; color:#ffe102;
-      padding:8px 15px; border-radius:12px; text-decoration:none; font-weight:700;
-      transition:transform .2s, background .2s;
-    }
-    .top-links a:hover { transform:scale(1.1); background:rgba(255,235,59,0.4); }
-    .top-logo {
-      position:absolute; top:20px; left:20px; width:80px; height:80px; border-radius:50%;
-      box-shadow:0 0 20px 4px #00ff99; animation:pulse 2s infinite; cursor:pointer; z-index:10;
-    }
+    .top-links a { background:rgba(255,235,59,0.2); border:2px solid #ffeb3b; color:#ffe102; padding:8px 15px; border-radius:12px; text-decoration:none; font-weight:700; transition:transform .2s, background .2s; }
+    .top-links a.disabled { pointer-events:none; opacity:0.5; }
+    .top-logo { position:absolute; top:20px; left:20px; width:80px; height:80px; border-radius:50%; box-shadow:0 0 20px 4px #00ff99; animation:pulse 2s infinite; cursor:pointer; }
     .contract-container { text-align:center; margin-top:10px; }
     .contract-label { font-size:14px; font-weight:bold; margin-bottom:4px; }
-    .contract-address {
-      font-size:12px; color:#000; background-color:#ffeb3b;
-      display:inline-block; padding:6px 10px; border-radius:6px;
-      cursor:pointer; user-select:all; transition:background .2s, transform .1s;
-      word-break:break-all;
-    }
+    .contract-address { font-size:12px; color:#000; background-color:#ffeb3b; display:inline-block; padding:6px 10px; border-radius:6px; cursor:pointer; user-select:all; transition:background .2s, transform .1s; word-break:break-all; }
     .contract-address:hover { background-color:#fdd835; transform:scale(1.03); }
     .lightning-wrapper { position:fixed; inset:0; overflow:hidden; pointer-events:none; z-index:0; }
     .lightning { position:absolute; color:#ffeb3b; font-size:2rem; opacity:0.7; animation:floatLightning 6s linear infinite, flicker 3s infinite; }
-    @keyframes floatLightning { 0%{transform:translateY(110vh);}100%{transform:translateY(-10vh);} }
-    @keyframes flicker {
-      0%,18%,22%,25%,53%,57%,100%{opacity:1;text-shadow:0 0 5px #fff,0 0 20px #ffeb3b,0 0 40px #ffeb3b;}
-      20%,24%,55%{opacity:0.2;text-shadow:none;}
-    }
-
-    /* Agent Plug AI Companion */
-    #plugAI {
-      position: fixed; bottom: 20px; right: 20px;
-      width: 90px; height: 90px; border-radius: 50%;
-      cursor: pointer; z-index: 1000;
-      animation: float 3s ease-in-out infinite;
-      filter: drop-shadow(0 0 15px #00ffff);
-    }
-    @keyframes float { 0%,100% { transform: translateY(0); } 50% { transform: translateY(-10px); } }
-
-    #plugChat {
-      position: fixed; bottom: 130px; right: 20px;
-      width: 300px; max-height: 400px; background: rgba(0,0,0,0.9);
-      border: 2px solid #00ffff; border-radius: 15px;
-      display: none; flex-direction: column; overflow: hidden;
-      box-shadow: 0 0 20px #00ffff;
-      font-family: 'Rubik', sans-serif; color: white;
-      z-index: 1001;
-    }
-    #chatMessages {
-      flex: 1; overflow-y: auto; padding: 10px;
-      display: flex; flex-direction: column; gap: 8px;
-    }
-    .msg { padding: 8px 12px; border-radius: 10px; max-width: 80%; }
-    .user { background: #007bff; align-self: flex-end; }
-    .plug { background: #00bcd4; align-self: flex-start; }
-    #chatInputBox { display: flex; border-top: 1px solid #00ffff; }
-    #chatInput { flex: 1; background: transparent; border: none; color: #fff; padding: 10px; font-size: 1rem; outline: none; }
-    #sendBtn { background: #00ffff; border: none; padding: 10px 15px; cursor: pointer; font-weight: bold; color: #000; }
-    @media (max-width: 600px) { #plugChat { width: 90%; right: 5%; } }
+    @keyframes floatLightning {0%{transform:translateY(110vh);}100%{transform:translateY(-10vh);}}
+    @keyframes flicker {0%,18%,22%,25%,53%,57%,100%{opacity:1;text-shadow:0 0 5px #fff,0 0 20px #ffeb3b,0 0 40px #ffeb3b;}20%,24%,55%{opacity:0.2;text-shadow:none;}}
+    /* Agent Plug AI */
+    #plugAI { position:fixed; bottom:20px; right:20px; width:90px; height:90px; border-radius:50%; cursor:pointer; filter: drop-shadow(0 0 15px #00ffff); animation:float 3s ease-in-out infinite; z-index:1000; }
+    @keyframes float {0%,100%{transform:translateY(0);}50%{transform:translateY(-10px);}}
+    #plugChat { position:fixed; bottom:130px; right:20px; width:300px; max-height:400px; background:rgba(0,0,0,0.9); border:2px solid #00ffff; border-radius:15px; display:none; flex-direction:column; overflow:hidden; box-shadow:0 0 20px #00ffff; z-index:1001; color:white; }
+    #chatMessages { flex:1; overflow-y:auto; padding:10px; display:flex; flex-direction:column; gap:8px; }
+    .msg { padding:8px 12px; border-radius:10px; max-width:80%; }
+    .user { background:#007bff; align-self:flex-end; }
+    .plug { background:#00bcd4; align-self:flex-start; }
+    #chatInputBox { display:flex; border-top:1px solid #00ffff; }
+    #chatInput { flex:1; background:transparent; border:none; color:#fff; padding:10px; font-size:1rem; outline:none; }
+    #sendBtn { background:#00ffff; border:none; padding:10px 15px; cursor:pointer; font-weight:bold; color:#000; }
+    @media (max-width:600px){#plugChat{width:90%; right:5%;}}
   </style>
 </head>
 <body>
-  <a href="https://www.tensor.trade/trade/50da3327-1f62-426c-a8a4-4a865c2c2673" target="_blank">
+
+  <a href="" target="_blank">
     <img src="images/plugucoin107x107.png" alt="Plugumons Logo" class="top-logo" />
   </a>
 
   <div class="top-links">
     <a href="https://x.com/Plugumons" target="_blank">X</a>
-    <a href="https://pump.fun/coin/12EU3xpACKJEZoSZgQUGnv1NgFucRNDdJaPgwuicpump" target="_blank">Chart</a>
+    <a href="#" class="disabled">Chart</a>
   </div>
 
   <h1>⚡ Plugumons</h1>
@@ -128,44 +59,22 @@
 
   <div class="contract-container">
     <div class="contract-label">CA:</div>
-    <div class="contract-address" onclick="copyCA()">12EU3xpACKJEZoSZgQUGnv1NgFucRNDdJaPgwuicpump</div>
+    <div class="contract-address" onclick="navigator.clipboard.writeText(''); alert('Contract address copied!');">TBA</div>
   </div>
 
-  <script>
-    function copyCA() {
-      navigator.clipboard.writeText("12EU3xpACKJEZoSZgQUGnv1NgFucRNDdJaPgwuicpump");
-      alert("Contract address copied!");
-    }
-  </script>
-
   <div class="mint-info">
-    <p>1M $PLUGU = 1 Plugumon NFT ⚡</p>
     <p>Total NFT Supply: 1,000 Mints</p>
   </div>
 
   <div class="button-container">
-    <a href="#" class="button disabled">⚡ Energy Grid Coming Soon...</a>
+    <a href="#" class="button disabled">⚡ Mint Coming Soon...</a>
     <a href="#" class="button disabled">🎁 Mystery Box Coming Soon...</a>
-    <a href="network-map.html" class="button">⚡ Network Map BETA</a>
+    <a href="#" class="button disabled">⚡ Network Map BETA</a>
   </div>
 
   <div class="exchange-text">
-    Exchange $PLUGU tokens for Plugumon NFTs below and get plugged in! <br><br>
-    <strong>HOW IT WORKS:</strong><br>
-    Connect your wallet to use toast.fun below.<br>
-    While Plugumons are still mintable, you will have the opportunity to mint one!<br>
-    Thanks to Toast, our community can instantly bridge between their $PLUGU and Plugumon NFTs.<br><br>
-    <strong>WHAT DOES THIS MEAN?:</strong><br>
-    This basically means Plugumon NFTs are liquid!<br>
-    The bridge allows for seamless conversion between $PLUGU and Plugumons.<br><br>
-    <strong>TOKEN TO NFT ></strong> When a user wants an NFT those NFTs are pulled from the bridge pool—minted fresh from the pool.<br>
-    <strong>NFT TO TOKEN ></strong> NFT goes into the bridge pool for others to claim in the future — The user receives tokens instantly in their wallet!<br>
-    <strong>POOL WALLET ADDRESS ></strong> Wallet address that appears on holders list: 
-    <strong>5JwfSFgfGyPyNryEQfAaY8izfqsYfz2L6Xb4dH4LG5eQ</strong>
-  </div>
-
-  <div class="iframe-container">
-    <iframe src="https://www.toast.fun/embed/bridge/12EU3xpACKJEZoSZgQUGnv1NgFucRNDdJaPgwuicpump" title="toast.fun Bridge"></iframe>
+    <strong>Plugumon NFT minting will be available soon.</strong><br><br>
+    Stay tuned as we prepare the next evolution of Plugumons and their new minting system.
   </div>
 
   <footer>
@@ -197,17 +106,47 @@
     const chatInput = document.getElementById('chatInput');
     const sendBtn = document.getElementById('sendBtn');
 
+    const genericResponses = [
+      "⚡ Hello, human! Stay charged!", "💡 Plugumon says hi!", "⚡ I'm just a ghost, but I feel the energy!",
+      "🔌 Need a spark of advice?", "⚡ Keep collecting Plugumons!", "💨 Energy levels at max!",
+      "⚡ Did someone say NFT?", "💡 Zzz... just kidding, I'm awake!", "⚡ Watch out for short circuits!",
+      "💨 Power surge incoming!", "⚡ Electric vibes only!", "💡 Charge your wallets!",
+      "⚡ NFT hype is real!", "🔌 Plug in and stay tuned!", "⚡ Ghosts love NFTs too!",
+      "💡 Can't touch this energy!", "⚡ Sparkle like a Plugumon!", "🔌 Time to mint soon!",
+      "⚡ You found me!", "💨 Lightning fast greetings!", "⚡ Keep the energy flowing!",
+      "💡 Stay plugged in!", "⚡ More Plugumons coming!", "🔌 Don't short yourself out!",
+      "⚡ Hello from the blockchain!", "💨 Ghostly vibes activated!", "⚡ Ready to spark!",
+      "💡 Energy overload! ⚡", "⚡ Zap! Here I am!", "💨 Charging up your day!"
+    ];
+
+    const keywordResponses = {
+      hi: "⚡ Hi there! How's the energy today? ⚡",
+      hello: "💡 Hello, human! Ready to catch some Plugumons? 💡",
+      gm: "⚡ Good morning! Charge up for the day! ☀️",
+      nft: "🔌 NFTs are the future! Keep an eye on Plugumons! 🎨",
+      plugumons: "💨 Plugumons are always electrifying! ⚡",
+      mint: "⚡ Minting soon! Stay tuned... 🪙",
+      bye: "💡 Goodbye! Stay plugged in! 👋",
+      help: "⚡ Need help? Just ask me anything about Plugumons! 📝"
+    };
+
     plugAI.addEventListener('click', () => {
       plugChat.style.display = plugChat.style.display === 'flex' ? 'none' : 'flex';
     });
 
-    async function sendMessage() {
-      const userText = chatInput.value.trim();
-      if (!userText) return;
-      addMessage(userText, 'user');
-      chatInput.value = '';
-      const reply = await getAIResponse(userText);
-      addMessage(reply, 'plug');
+    function getRandomResponse() {
+      const idx = Math.floor(Math.random() * genericResponses.length);
+      return genericResponses[idx];
+    }
+
+    function getResponse(userText) {
+      const text = userText.toLowerCase();
+      for (const keyword in keywordResponses) {
+        if (text.includes(keyword)) {
+          return keywordResponses[keyword];
+        }
+      }
+      return getRandomResponse();
     }
 
     function addMessage(text, type) {
@@ -218,25 +157,19 @@
       chatMessages.scrollTop = chatMessages.scrollHeight;
     }
 
-    async function getAIResponse(message) {
-      try {
-        // ✅ UPDATED: points to deployed Render AI server
-        const response = await fetch("https://plugumons-ai-server.onrender.com/api/ai", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ message })
-        });
-        const data = await response.json();
-        return data.reply || "🤖 Plugumon is silent...";
-      } catch (err) {
-        console.error("AI fetch error:", err);
-        return "⚡ Error connecting to AI server.";
-      }
+    function sendMessage() {
+      const userText = chatInput.value.trim();
+      if (!userText) return;
+      addMessage(userText, 'user');
+      chatInput.value = '';
+      const reply = getResponse(userText);
+      setTimeout(() => addMessage(reply, 'plug'), 500 + Math.random()*1000);
     }
 
     sendBtn.addEventListener('click', sendMessage);
-    chatInput.addEventListener('keydown', e => { if (e.key === 'Enter') sendMessage(); });
+    chatInput.addEventListener('keydown', e => { if(e.key==='Enter') sendMessage(); });
   </script>
+
 </body>
 </html>
 
